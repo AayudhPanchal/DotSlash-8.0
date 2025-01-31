@@ -1,0 +1,1 @@
+This is the README for DotSlash 8.0 2025, organised by ACM NIT Surat. 
