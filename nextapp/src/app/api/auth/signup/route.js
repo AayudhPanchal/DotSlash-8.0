@@ -6,31 +6,56 @@ import crypto from 'crypto';
 
 export async function POST(req) {
   try {
-    // Parse the request body
     const body = await req.json();
-    const { name, email, mobileno, password, aadharno, captchaToken, captchaInput } = body;
+    const { name, email, mobileno, password, captchaToken, captchaInput, location } = body;
+
+    console.log('Received CAPTCHA data:', { captchaToken, captchaInput }); // Debug log
+    console.log('Global CAPTCHA store:', global.captchaStore); // Debug log
 
     // Connect to the database
     await dbConnect();
 
     // Validate input fields
-    if (!name || !email || !mobileno || !password || !aadharno || !captchaToken || !captchaInput) {
+    if (!name || !email || !mobileno || !password || !captchaToken || !captchaInput) {
       return new Response(
-        JSON.stringify({ message: 'All fields are required', success: false }),
+        JSON.stringify({ 
+          message: 'All fields are required', 
+          success: false,
+          missingFields: { name, email, mobileno, password, captchaToken, captchaInput }
+        }),
         { status: 400 }
       );
     }
 
     // Step 1: Verify CAPTCHA
-    global.captchaStore = global.captchaStore || {}; // Initialize CAPTCHA store
-    const storedCaptcha = global.captchaStore[captchaToken];
-
-    if (!storedCaptcha || storedCaptcha !== captchaInput) {
+    if (!global.captchaStore) {
+      console.error('CAPTCHA store not initialized');
       return new Response(
-        JSON.stringify({ message: 'Invalid CAPTCHA', success: false }),
+        JSON.stringify({ message: 'CAPTCHA system error', success: false }),
+        { status: 500 }
+      );
+    }
+
+    const storedCaptcha = global.captchaStore[captchaToken];
+    console.log('Stored CAPTCHA:', storedCaptcha);
+    console.log('User input CAPTCHA:', captchaInput);
+
+    if (!storedCaptcha) {
+      return new Response(
+        JSON.stringify({ message: 'CAPTCHA expired or invalid', success: false }),
         { status: 400 }
       );
     }
+
+    if (storedCaptcha.toLowerCase() !== captchaInput.toLowerCase()) {
+      return new Response(
+        JSON.stringify({ message: 'Incorrect CAPTCHA', success: false }),
+        { status: 400 }
+      );
+    }
+
+    // Remove used CAPTCHA
+    delete global.captchaStore[captchaToken];
 
     // Step 2: Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -44,37 +69,33 @@ export async function POST(req) {
     // Step 3: Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Step 4: Generate a verification token and expiry time
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationExpires = Date.now() + 60 * 60 * 1000; // Token valid for 1 hour
+    // Step 4: Generate an OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Step 5: Create a new user (initially unverified)
     const user = await User.create({
       name,
       email,
       mobileno,
-      password: hashedPassword,
-      aadharno,
+      password: hashedPassword, 
       isVerified: false, // Add an `isVerified` field in your User model
-      verificationToken,
-      verificationExpires,
+      otp,
+      otpExpires: Date.now() + 10 * 60 * 1000, // OTP valid for 10 minutes
     });
 
-    // Step 6: Send the verification email
-    const verificationLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${verificationToken}&email=${email}`;
+    // Step 5: Send the OTP email
     await sendEmail({
       to: email,
-      subject: 'Email Verification',
-      text: `Hello ${name},\n\nPlease verify your email by clicking the link below:\n${verificationLink}`,
+      subject: 'Email Verification OTP',
+      text: `Hello ${name},\n\nYour OTP for email verification is ${otp}.`,
       html: `<p>Hello ${name},</p>
-             <p>Please verify your email by clicking the link below:</p>
-             <a href="${verificationLink}">Verify Email</a>`,
+             <p>Your OTP for email verification is <strong>${otp}</strong>.</p>`,
     });
 
-    // Step 7: Return success response
+    // Step 6: Return success response
     return new Response(
       JSON.stringify({
-        message: 'User created successfully. Please check your email to verify your account.',
+        message: 'User created successfully. Please check your email for the OTP to verify your account.',
         userId: user._id,
         success: true
       }),
@@ -82,10 +103,14 @@ export async function POST(req) {
     );
 
   } catch (error) {
-    console.error(error);
+    console.error('Signup error:', error);
     return new Response(
-      JSON.stringify({ message: 'Server error', error: error.message, success: false }),
+      JSON.stringify({ 
+        message: 'Server error', 
+        error: error.message,
+        success: false 
+      }),
       { status: 500 }
     );
-  } 
+  }
 }

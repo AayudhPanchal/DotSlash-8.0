@@ -35,20 +35,22 @@ const userSchema = new mongoose.Schema(
     otpExpires: {
       type: Date,
     },
-    aadharno: {
-      type: String,
-      sparse: true,
-      match: [/^\d{12}$/, 'Please provide a valid 12-digit Aadhar number'],
-    },
     location: {
       type: {
-        latitude: Number,
-        longitude: Number
+        latitude: {
+          type: Number,
+          required: true
+        },
+        longitude: {
+          type: Number,
+          required: true
+        },
+        timestamp: {
+          type: Date,
+          default: Date.now
+        }
       },
-      default: {
-        latitude: null,
-        longitude: null
-      }
+      required: true
     },
     verificationToken: String,
     verificationExpires: Date,

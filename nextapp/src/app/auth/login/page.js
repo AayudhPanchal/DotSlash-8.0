@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import LocationModal from '../../components/LocationModal';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -22,11 +23,20 @@ export default function LoginPage() {
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otpError, setOtpError] = useState('');
+  const [showLocationModal, setShowLocationModal] = useState(true);
+  const [location, setLocation] = useState(null);
 
   // Fetch CAPTCHA on component mount
   useEffect(() => {
     fetchCaptcha();
   }, []);
+
+  // Add this to ensure LocationModal shows first
+  useEffect(() => {
+    if (!location) {
+      setShowLocationModal(true);
+    }
+  }, [location]);
 
   const fetchCaptcha = async () => {
     try {
@@ -83,6 +93,13 @@ export default function LoginPage() {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!location) {
+      toast.error("Location access is required");
+      setShowLocationModal(true);
+      return;
+    }
+
     if (!validateForm()) {
       toast.error("Please fix the errors.");
       return;
@@ -113,8 +130,41 @@ export default function LoginPage() {
     }
   };
 
+  const requestLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const locationData = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: new Date().toISOString()
+          };
+          console.log('Location captured:', locationData); // Debug log
+          setLocation(locationData);
+          setShowLocationModal(false);
+          toast.success("Location verified successfully");
+          localStorage.setItem('user-location', JSON.stringify(locationData));
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          toast.error("Location access is required to login");
+          setShowLocationModal(true);
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    } else {
+      toast.error("Your browser doesn't support location services");
+    }
+  };
+
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
+    if (!location) {
+      setShowLocationModal(true);
+      return;
+    }
+
     const storedOtp = localStorage.getItem('otp');
     const otpExpiry = localStorage.getItem('otpExpiry');
 
@@ -134,6 +184,7 @@ export default function LoginPage() {
           },
           body: JSON.stringify({
             ...formData,
+            location,
             captchaToken: localStorage.getItem("captchaToken"), // Send token for verification
           }),
         });
@@ -143,7 +194,7 @@ export default function LoginPage() {
           sessionStorage.setItem('user-auth-token', data.token);
           toast.success("Login successful!");
           // Redirect to dashboard
-          router.push("/u/dashboard");
+          router.push("/dashboard");
         } else {
           toast.error(data.message);
           fetchCaptcha(); // Refresh CAPTCHA on failure
@@ -159,117 +210,125 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#2627bf] to-[#645fff]">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
-        <h2 className="text-3xl font-bold text-gray-800 text-center mb-6">Login</h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Identifier Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email or Mobile</label>
-            <input
-              type="text"
-              name="identifier"
-              value={formData.identifier}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter Email or Mobile Number"
-            />
-            {errors.identifier && <p className="text-red-500 text-xs mt-1">{errors.identifier}</p>}
-          </div>
-
-          {/* Password Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter Password"
-            />
-            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-          </div>
-
-          {/* CAPTCHA */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Captcha</label>
-            <div className="flex items-center justify-between">
-              <img
-                src={`data:image/png;base64,${captchaImage}`}
-                alt="CAPTCHA"
-                className="border rounded-lg"
-              />
-              <button
-                type="button"
-                onClick={fetchCaptcha}
-                className="ml-2 px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
-                Refresh
-              </button>
-            </div>
-            <input
-              type="text"
-              name="captchaInput"
-              value={formData.captchaInput}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter CAPTCHA"
-            />
-            {errors.captchaInput && (
-              <p className="text-red-500 text-xs mt-1">{errors.captchaInput}</p>
-            )}
-          </div>
-
-          {/* Submit Button */}
-          {!isOtpSent && (
-            <button
-              type="submit"
-              className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Send OTP
-            </button>
-          )}
-        </form>
-
-        {isOtpSent && (
-          <form onSubmit={handleOtpSubmit} className="space-y-6 mt-6">
+    <>
+      <LocationModal 
+        isOpen={showLocationModal && !location}
+        onClose={() => router.push('/')}
+        onAccept={requestLocation}
+        message="Location Required for Login"
+      />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#2627bf] to-[#645fff]">
+        <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
+          <h2 className="text-3xl font-bold text-gray-800 text-center mb-6">Login</h2>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Identifier Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Enter OTP</label>
+              <label className="block text-sm font-medium text-gray-700">Email or Mobile</label>
               <input
                 type="text"
-                name="otp"
-                value={otp}
-                onChange={handleOtpChange}
+                name="identifier"
+                value={formData.identifier}
+                onChange={handleChange}
+                onBlur={handleBlur}
                 className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Enter OTP"
+                placeholder="Enter Email or Mobile Number"
               />
-              {otpError && <p className="text-red-500 text-xs mt-1">{otpError}</p>}
+              {errors.identifier && <p className="text-red-500 text-xs mt-1">{errors.identifier}</p>}
             </div>
-            <button
-              type="submit"
-              className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Verify OTP
-            </button>
-          </form>
-        )}
 
-        <p className="text-center m-3">
-          Don't have an account?{" "}
-          <Link href={"/auth/signup"} className="text-blue-600">
-            Sign Up
-          </Link>
-        </p>
-        <p className="text-center m-3">
-          <Link href={"/auth/forgot-password"} className="text-blue-600">
-            Forgot Password?
-          </Link>
-        </p>
+            {/* Password Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                placeholder="Enter Password"
+              />
+              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+            </div>
+
+            {/* CAPTCHA */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Captcha</label>
+              <div className="flex items-center justify-between">
+                <img
+                  src={`data:image/png;base64,${captchaImage}`}
+                  alt="CAPTCHA"
+                  className="border rounded-lg"
+                />
+                <button
+                  type="button"
+                  onClick={fetchCaptcha}
+                  className="ml-2 px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Refresh
+                </button>
+              </div>
+              <input
+                type="text"
+                name="captchaInput"
+                value={formData.captchaInput}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                placeholder="Enter CAPTCHA"
+              />
+              {errors.captchaInput && (
+                <p className="text-red-500 text-xs mt-1">{errors.captchaInput}</p>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            {!isOtpSent && (
+              <button
+                type="submit"
+                className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Send OTP
+              </button>
+            )}
+          </form>
+
+          {isOtpSent && (
+            <form onSubmit={handleOtpSubmit} className="space-y-6 mt-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Enter OTP</label>
+                <input
+                  type="text"
+                  name="otp"
+                  value={otp}
+                  onChange={handleOtpChange}
+                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder="Enter OTP"
+                />
+                {otpError && <p className="text-red-500 text-xs mt-1">{otpError}</p>}
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Verify OTP
+              </button>
+            </form>
+          )}
+
+          <p className="text-center m-3">
+            Don't have an account?{" "}
+            <Link href={"/auth/signup"} className="text-blue-600">
+              Sign Up
+            </Link>
+          </p>
+          <p className="text-center m-3">
+            <Link href={"/auth/forgot-password"} className="text-blue-600">
+              Forgot Password?
+            </Link>
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
