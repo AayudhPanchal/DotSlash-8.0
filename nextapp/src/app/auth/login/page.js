@@ -191,10 +191,11 @@ export default function LoginPage() {
         const data = await response.json();
         toast.dismiss();
         if (data.success) {
+          // Store user data in session storage
           sessionStorage.setItem('user-auth-token', data.token);
+          sessionStorage.setItem('user-data', JSON.stringify(data.user));
           toast.success("Login successful!");
-          // Redirect to dashboard
-          router.push("/dashboard");
+          router.push("/dashboard/profile");
         } else {
           toast.error(data.message);
           fetchCaptcha(); // Refresh CAPTCHA on failure

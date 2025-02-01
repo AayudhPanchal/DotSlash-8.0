@@ -30,28 +30,30 @@ export default function PolicyPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Policies</h2>
+    <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-6">
+      <h2 className="text-3xl font-bold text-[#403cd5] mb-6">Policies</h2>
 
       <div className="space-y-4">
         {policies.map((policy) => (
           <div
             key={policy.id}
-            className="p-4 border rounded-lg bg-gray-100 dark:bg-gray-700 hover:shadow-md transition"
+            className="p-6 rounded-lg bg-gradient-to-r from-[#403cd5]/10 to-white border border-[#403cd5]/20 hover:from-[#403cd5]/20 transition-all duration-300"
           >
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{policy.title}</h3>
+              <h3 className="text-xl font-bold text-[#403cd5]">{policy.title}</h3>
               <button
                 onClick={() => togglePolicyDetails(policy.id)}
-                className="text-blue-500 hover:underline"
+                className="px-4 py-2 rounded-lg text-[#403cd5] hover:bg-[#403cd5]/10 transition-all duration-300"
               >
                 {expandedPolicy === policy.id ? "Hide Details" : "View Details"}
               </button>
             </div>
-            <p className="text-gray-700 dark:text-gray-300 mt-2">{policy.description}</p>
+            <p className="text-gray-600 mt-2">{policy.description}</p>
 
             {expandedPolicy === policy.id && (
-              <p className="text-gray-600 dark:text-gray-400 mt-3">{policy.details}</p>
+              <div className="mt-4 p-4 bg-white rounded-lg border border-[#403cd5]/10">
+                <p className="text-gray-600">{policy.details}</p>
+              </div>
             )}
           </div>
         ))}

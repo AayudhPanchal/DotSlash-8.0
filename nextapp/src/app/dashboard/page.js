@@ -3,7 +3,7 @@ import Sidebar from "../components/dashboard/Sidebar";
 
 export default function DashboardLayout({ children }) {
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="flex h-[calc(100vh-64px)] mt-16 bg-[#403cd5]/5">
       {/* Sidebar */}
       <Sidebar />
 

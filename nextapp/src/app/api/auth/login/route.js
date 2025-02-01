@@ -109,11 +109,19 @@ export async function POST(req) {
       { expiresIn: "1d" }
     );
 
+    // Modify the response to include only basic info
     return new Response(
       JSON.stringify({
         success: true,
         token,
-        location: updateResult.lastLoginLocation
+        location: updateResult.lastLoginLocation,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          mobileno: user.mobileno,
+          profileCompleted: user.profileCompleted
+        }
       }),
       { status: 200 }
     );

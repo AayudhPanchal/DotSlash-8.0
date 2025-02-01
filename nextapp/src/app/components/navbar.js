@@ -8,6 +8,13 @@ import { FaLanguage } from "react-icons/fa";
 import { toast } from 'react-hot-toast'
 
 export default function Navbar() {
+  const pathname = usePathname();
+
+  // Hide navbar if we're on dashboard routes
+  if (pathname.startsWith('/dashboard')) {
+    return null;
+  }
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
@@ -18,7 +25,6 @@ export default function Navbar() {
 
   const translateRef = useRef(null);
   const dropdownRef = useRef(null);
-  const pathname = usePathname();
 
   const languages = [
     { code: 'en', name: 'English' },
