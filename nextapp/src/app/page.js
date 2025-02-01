@@ -12,6 +12,7 @@ import {
   FaCogs,
   FaMobileAlt,
 } from "react-icons/fa";
+import Chatbot from "./components/chatbot";
 
 const features = [
   {
@@ -61,14 +62,18 @@ const sponsors = [
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <script
-        type="module"
-        src="https://unpkg.com/@splinetool/viewer@1.9.59/build/spline-viewer.js"
-      ></script>
-      <section className="hero">
+    <div className="z-auto min-h-screen bg-gray-900 text-white">
+      <Chatbot />
+      <section className="desktop hero hidden md:block">
         <div className="3dviewer hidden md:block h-screen mx-auto">
-          <spline-viewer url="https://prod.spline.design/wXGJuw02W7TK6thw/scene.splinecode"></spline-viewer>
+          <script
+            type="module"
+            src="https://unpkg.com/@splinetool/viewer@1.9.59/build/spline-viewer.js"
+          ></script>
+          <spline-viewer
+            loading-anim-type="spinner-small-light"
+            url="https://prod.spline.design/eAiiKfUMzQGpOmPc/scene.splinecode"
+          ></spline-viewer>
         </div>
         <div className="hidden md:flex absolute top-64 left-24 flex-col">
           <div className="w-[35vw] title text-8xl font-bold">
@@ -87,6 +92,27 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Mobile view */}
+      <section className="mobile hero md:hidden bg-cover bg-center h-screen" style={{ backgroundImage: "url('/main.png')" }}>
+        <div className="flex flex-col absolute top-28 items-center text-left p-4">
+          <div className="title text-4xl font-bold pl-8">
+            Welcome to the web.
+          </div>
+          <div className="description pt-2 px-12 text-md opacity-80">
+            this is our description and what we do.
+          </div>
+          <div className="action_button pt-80">
+            <button className="group cursor-pointer slide-anime px-5 py-3 rounded-full w-[180px] dark:bg-white bg-base-dark text-white dark:text-black flex justify-between items-center font-semibold ">
+              Schedule Call{" "}
+              <div className="group-hover:translate-x-2 transition-all">
+                <ArrowRight />
+              </div>
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-16 bg-[#f8f9fa]">
         <div className="container mx-auto px-4">
@@ -123,9 +149,9 @@ const Home = () => {
                   src={sponsor.src}
                   alt={sponsor.alt}
                   height={0}
-                  width={0} 
+                  width={0}
                   sizes="100vw"
-                  style={{width: 'auto', height: '7vh'}}
+                  style={{ width: "auto", height: "7vh" }}
                   className="object-contain"
                 />
               </div>

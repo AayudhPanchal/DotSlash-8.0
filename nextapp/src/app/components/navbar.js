@@ -3,13 +3,14 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react"; 
+import { Menu, X, ChevronDown } from "lucide-react";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Mobile menu toggle
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Language dropdown toggle
   const pathname = usePathname();
 
   // Check login status
@@ -50,12 +51,12 @@ export default function Navbar() {
     >
       {/* Logo */}
       <div className="flex items-center space-x-3">
-      <img
-            src="/images/logo.png" // Replace with your logo image
-            alt="Logo"
-            className="w-10 h-10 md:w-16 md:h-26 mx-auto md:mx-0 mb-4 shadow-md"
-          />
-        <span className="text-lg font-bold  tracking-wide text-white">
+        <img
+          src="/images/logo.png" // Replace with your logo image
+          alt="Logo"
+          className="w-10 h-10 md:w-16 md:h-26 mx-auto md:mx-0 mb-4 shadow-md"
+        />
+        <span className="text-lg font-bold tracking-wide text-white">
           Holy Trinity
         </span>
       </div>
@@ -83,6 +84,25 @@ export default function Navbar() {
             </Link>
           </li>
         ))}
+        {/* Language Dropdown */}
+        <li className="relative">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center space-x-2 hover:text-[#6DBE47] transition duration-300"
+          >
+            <span>Language</span>
+            <ChevronDown size={16} />
+          </button>
+          {isDropdownOpen && (
+            <ul className="absolute right-0 mt-2 w-40 bg-white text-black rounded-lg shadow-lg">
+              {["English", "Spanish", "French", "German", "Chinese"].map((lang) => (
+                <li key={lang} className="px-4 py-2 hover:bg-[#6DBE47] hover:text-white transition duration-300">
+                  {lang}
+                </li>
+              ))}
+            </ul>
+          )}
+        </li>
       </ul>
 
       {/* User Login/Signup & Admin Login - Desktop */}
