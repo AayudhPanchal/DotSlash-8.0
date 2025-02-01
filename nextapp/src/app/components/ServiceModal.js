@@ -1,7 +1,7 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { FaTimes, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaTimes, FaChevronDown, FaChevronUp, FaExternalLinkAlt } from "react-icons/fa";
 
 const ServiceModal = ({ isOpen, onClose, service, faqs = [] }) => {
   const [expandedIndex, setExpandedIndex] = useState(null);
@@ -77,14 +77,26 @@ const ServiceModal = ({ isOpen, onClose, service, faqs = [] }) => {
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                       >
                         <div className="px-6 py-4 bg-gray-50 text-gray-700">
-                          <motion.p
+                          <motion.div
                             initial={{ y: -10, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.1 }}
-                            className="leading-relaxed"
+                            className="space-y-3"
                           >
-                            {faq.answer}
-                          </motion.p>
+                            <p className="leading-relaxed">
+                              {faq.answer}
+                            </p>
+                            {faq.reference && (
+                              <a
+                                href={faq.reference}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 text-sm text-[#403cd5] hover:text-[#352fb3] font-medium"
+                              >
+                                Learn More <FaExternalLinkAlt size={12} />
+                              </a>
+                            )}
+                          </motion.div>
                         </div>
                       </motion.div>
                     )}

@@ -79,6 +79,8 @@ const Home = () => {
 
   return (
     <div className="z-auto min-h-screen bg-gray-900 text-white">
+      <script src="https://cdn.botpress.cloud/webchat/v2.2/inject.js"></script>
+      <script src="https://files.bpcontent.cloud/2025/02/01/18/20250201183607-3IM00KY8.js"></script>
       <Chatbot />
       <section className="desktop hero hidden md:block">
         <div className="3dviewer hidden md:block h-screen mx-auto">
@@ -110,7 +112,10 @@ const Home = () => {
       </section>
 
       {/* Mobile view */}
-      <section className="mobile hero md:hidden bg-cover bg-center h-screen" style={{ backgroundImage: "url('/main.png')" }}>
+      <section
+        className="mobile hero md:hidden bg-cover bg-center h-screen"
+        style={{ backgroundImage: "url('/main.png')" }}
+      >
         <div className="flex flex-col absolute top-28 items-center text-left p-4">
           <div className="title text-4xl font-extrabold pl-8">
             Welcome to the web.
@@ -157,7 +162,11 @@ const Home = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         service={selectedService}
-        faqs={selectedService && serviceFaqs[selectedService.title] ? serviceFaqs[selectedService.title] : []}
+        faqs={
+          selectedService && serviceFaqs[selectedService.title]
+            ? serviceFaqs[selectedService.title]
+            : []
+        }
       />
 
       {/* Sponsors */}
