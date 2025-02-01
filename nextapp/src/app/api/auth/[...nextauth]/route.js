@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import User from '@/models/user';
 
 export const authOptions = {
-  providers: [  
+  providers: [
     CredentialsProvider({
       name: 'Credentials',
       credentials: {

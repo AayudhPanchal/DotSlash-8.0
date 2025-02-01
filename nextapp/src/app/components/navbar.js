@@ -257,7 +257,7 @@ export default function Navbar() {
         ) : (
           <Link
             href="/auth/login"
-            className="px-6 py-2 text-white text-opacity-90 bg-[#403cd5] rounded-full hover:text-opacity-100 hover:bg-[#4e49e5] transition-all duration-300"
+            className="px-6 py-2 text-white border border-[#8974e8] rounded-full hover:bg-[#8974e8] hover:text-black transition-all duration-300"
           >
             Login
           </Link>

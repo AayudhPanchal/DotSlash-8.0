@@ -8,7 +8,7 @@ const menuItems = [
   { name: "Home", path: "/", icon: FiHome },
   { name: "Profile", path: "/dashboard/profile", icon: FiUser },
   { name: "Policy", path: "/dashboard/recommend-policy", icon: FiFileText },
-  { name: "Voting", path: "/dashboard/voting", icon: FiCheckSquare },
+  { name: "Voting", path: "/dashboard/voting-policy", icon: FiCheckSquare },
   { name: "Apply Policy", path: "/dashboard/apply-policy", icon: FiEdit3 },
 ];
 

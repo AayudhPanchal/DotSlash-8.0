@@ -3,6 +3,24 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
+const OCCUPATION_OPTIONS = [
+  { value: 'student', label: 'Student' },
+  { value: 'businessman', label: 'Businessman' },
+  { value: 'engineer', label: 'Engineer' },
+  { value: 'doctor', label: 'Doctor' },
+  { value: 'accountant', label: 'Accountant' },
+  { value: 'others', label: 'Others' }
+];
+
+const EDUCATION_OPTIONS = [
+  { value: 'tenth', label: '10th Standard' },
+  { value: 'twelfth', label: '12th Standard' },
+  { value: 'undergraduate', label: 'Undergraduate' },
+  { value: 'postgraduate', label: 'Postgraduate' },
+  { value: 'doctorate', label: 'Doctorate' },
+  { value: 'others', label: 'Others' }
+];
+
 const FormSection = ({ title, children, disabled }) => (
   <div className={`mb-8 bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100
     ${disabled ? 'opacity-75' : ''}`}>
@@ -645,20 +663,46 @@ export default function ProfilePage() {
         {/* Employment Details */}
         <FormSection title="Employment Details" disabled={!editing}>
           <div className="space-y-4">
-            <InputField
-              label="Occupation"
-              name="occupation"
-              value={formData.occupation}
-              onChange={handleChange}
-              disabled={!editing}
-            />
-            <InputField
-              label="Education"
-              name="education"
-              value={formData.education}
-              onChange={handleChange}
-              disabled={!editing}
-            />
+            {/* Occupation Dropdown */}
+            <div>
+              <label className="block text-lg font-medium text-gray-700 mb-2">Occupation</label>
+              <select
+                name="occupation"
+                value={formData.occupation}
+                onChange={handleChange}
+                disabled={!editing}
+                className="w-full p-3 bg-[#403cd5]/5 border border-[#403cd5]/20 rounded-lg text-gray-800 focus:border-[#403cd5] focus:ring-1 focus:ring-[#403cd5]"
+                required
+              >
+                <option value="">Select Occupation</option>
+                {OCCUPATION_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Education Dropdown */}
+            <div>
+              <label className="block text-lg font-medium text-gray-700 mb-2">Education</label>
+              <select
+                name="education"
+                value={formData.education}
+                onChange={handleChange}
+                disabled={!editing}
+                className="w-full p-3 bg-[#403cd5]/5 border border-[#403cd5]/20 rounded-lg text-gray-800 focus:border-[#403cd5] focus:ring-1 focus:ring-[#403cd5]"
+                required
+              >
+                <option value="">Select Education</option>
+                {EDUCATION_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label className="flex items-center">
                 <input

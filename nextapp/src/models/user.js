@@ -87,11 +87,15 @@ const userSchema = new mongoose.Schema(
     },
     occupation: {
       type: String,
-      default: ''
+      enum: ['student', 'businessman', 'engineer', 'doctor', 'accountant', 'others'],
+      required: true,
+      default: 'others'
     },
     education: {
       type: String,
-      default: ''
+      enum: ['tenth', 'twelfth', 'undergraduate', 'postgraduate', 'doctorate', 'others'],
+      required: true,
+      default: 'others'
     },
     isGovernmentEmployee: {
       type: Boolean,

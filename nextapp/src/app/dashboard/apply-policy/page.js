@@ -1,8 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ApplyPolicyPage() {
-  const [formData, setFormData] = useState({ title: "", description: "", justification: "" });
+  const [formData, setFormData] = useState({
+    title: "",
+    category: "",
+    description: "",
+    justification: "",
+    occupation: "",
+    education: ""
+  });
+  const [categories, setCategories] = useState([]);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
@@ -10,19 +18,55 @@ export default function ApplyPolicyPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    // Fetch categories from the votepolicies model
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        const data = await response.json();
+        setCategories(data.categories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.description || !formData.justification) {
+    if (!formData.title || !formData.category || !formData.description || !formData.justification) {
       setError("All fields are required.");
       return;
     }
 
-    setSubmitted(true);
-    setError("");
-    setFormData({ title: "", description: "", justification: "" });
+    try {
+      const response = await fetch('/api/policies/apply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-    // Here you would normally send the data to an API or backend
+      if (response.ok) {
+        setSubmitted(true);
+        setError("");
+        setFormData({
+          title: "",
+          category: "",
+          description: "",
+          justification: "",
+          occupation: "",
+          education: ""
+        });
+      } else {
+        const data = await response.json();
+        setError(data.message || 'Something went wrong');
+      }
+    } catch (error) {
+      setError('Failed to submit policy application');
+    }
   };
 
   return (
@@ -39,30 +83,61 @@ export default function ApplyPolicyPage() {
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Policy Title */}
+        {/* Title Dropdown */}
         <div>
           <label className="block text-gray-300 mb-2">Policy Title</label>
-          <input
-            type="text"
+          <select
             name="title"
             value={formData.title}
             onChange={handleChange}
             className="w-full p-3 bg-[#403cd5]/5 border border-[#403cd5]/20 rounded-lg text-gray-800 focus:border-[#403cd5] focus:ring-1 focus:ring-[#403cd5]"
-            placeholder="Enter policy title"
-          />
+            required
+          >
+            <option value="">Select Policy Title</option>
+            <option value="Environmental Protection">Environmental Protection</option>
+            <option value="Healthcare Access">Healthcare Access</option>
+            <option value="Digital Infrastructure">Digital Infrastructure</option>
+            <option value="Education Reform">Education Reform</option>
+            <option value="Economic Development">Economic Development</option>
+          </select>
         </div>
 
-        {/* Policy Description */}
+        {/* Category Dropdown */}
+        <div>
+          <label className="block text-gray-300 mb-2">Policy Category</label>
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="w-full p-3 bg-[#403cd5]/5 border border-[#403cd5]/20 rounded-lg text-gray-800 focus:border-[#403cd5] focus:ring-1 focus:ring-[#403cd5]"
+            required
+          >
+            <option value="">Select Category</option>
+            {categories.map((category, index) => (
+              <option key={index} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Description Dropdown */}
         <div>
           <label className="block text-gray-300 mb-2">Policy Description</label>
-          <textarea
+          <select
             name="description"
             value={formData.description}
             onChange={handleChange}
-            rows="3"
             className="w-full p-3 bg-[#403cd5]/5 border border-[#403cd5]/20 rounded-lg text-gray-800 focus:border-[#403cd5] focus:ring-1 focus:ring-[#403cd5]"
-            placeholder="Briefly describe the policy"
-          />
+            required
+          >
+            <option value="">Select Description</option>
+            <option value="Improve environmental regulations">Improve environmental regulations</option>
+            <option value="Enhance healthcare accessibility">Enhance healthcare accessibility</option>
+            <option value="Upgrade digital infrastructure">Upgrade digital infrastructure</option>
+            <option value="Reform education system">Reform education system</option>
+            <option value="Boost economic growth">Boost economic growth</option>
+          </select>
         </div>
 
         {/* Justification */}
@@ -76,6 +151,46 @@ export default function ApplyPolicyPage() {
             className="w-full p-3 bg-[#403cd5]/5 border border-[#403cd5]/20 rounded-lg text-gray-800 focus:border-[#403cd5] focus:ring-1 focus:ring-[#403cd5]"
             placeholder="Explain why this policy is needed"
           />
+        </div>
+
+        {/* Occupation Field */}
+        <div>
+          <label className="block text-gray-300 mb-2">Occupation</label>
+          <select
+            name="occupation"
+            value={formData.occupation}
+            onChange={handleChange}
+            className="w-full p-3 bg-[#403cd5]/5 border border-[#403cd5]/20 rounded-lg text-gray-800 focus:border-[#403cd5] focus:ring-1 focus:ring-[#403cd5]"
+            required
+          >
+            <option value="">Select Occupation</option>
+            <option value="student">Student</option>
+            <option value="businessman">Businessman</option>
+            <option value="engineer">Engineer</option>
+            <option value="doctor">Doctor</option>
+            <option value="accountant">Accountant</option>
+            <option value="others">Others</option>
+          </select>
+        </div>
+
+        {/* Education Field */}
+        <div>
+          <label className="block text-gray-300 mb-2">Education</label>
+          <select
+            name="education"
+            value={formData.education}
+            onChange={handleChange}
+            className="w-full p-3 bg-[#403cd5]/5 border border-[#403cd5]/20 rounded-lg text-gray-800 focus:border-[#403cd5] focus:ring-1 focus:ring-[#403cd5]"
+            required
+          >
+            <option value="">Select Education</option>
+            <option value="tenth">10th Standard</option>
+            <option value="twelfth">12th Standard</option>
+            <option value="undergraduate">Undergraduate</option>
+            <option value="postgraduate">Postgraduate</option>
+            <option value="doctorate">Doctorate</option>
+            <option value="others">Others</option>
+          </select>
         </div>
 
         {/* Submit Button */}
