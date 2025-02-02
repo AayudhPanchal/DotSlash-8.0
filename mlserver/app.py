@@ -2,8 +2,10 @@ from flask import Flask, request, jsonify
 import pandas as pd
 import ollama
 import numpy as np
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # Load the dataset
 try:
@@ -105,7 +107,7 @@ def chat():
         print(f"Received prompt: {prompt}")
         output = ollama.generate(
             model='llama3.2',
-            prompt=f'Respond only with information relevant to wildlife conservation, environmental risks, flora/fauna identification, poaching prevention, fire hazards, and emergency coordination in forested areas. If the query is unrelated, steer the conversation back to these topics. Keep responses concise, accurate, and actionable. Prompt: {prompt}',
+            prompt=f'You are an expert who knows about the government policies of India, including all the schemes and policies that the government of India offers for particular groups. If the query is unrelated, steer the conversation back to these topics. Keep responses concise, accurate, and actionable. Prompt: {prompt}',
         )
         print(f"Response content: {output['response']}")
         return jsonify({"response": output['response']})
