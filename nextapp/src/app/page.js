@@ -56,11 +56,11 @@ const features = [
 ];
 
 const sponsors = [
-  { id: 1, src: "/ETHIndia.png", alt: "Sponsor 1" },
-  { id: 2, src: "/Polygon.png", alt: "Sponsor 2" },
-  { id: 3, src: "/Devfolio.png", alt: "Sponsor 3" },
-  { id: 4, src: "/Aptos.png", alt: "Sponsor 4" },
-  { id: 5, src: "/sponsor5.png", alt: "Sponsor 5" },
+  { id: 1, src: "/images/ETHIndia.png", alt: "Sponsor 1" },
+  { id: 2, src: "/images/Polygon.png", alt: "Sponsor 2" },
+  { id: 3, src: "/images/Mira.png", alt: "Sponsor 3" },
+  { id: 4, src: "/images/Devfolio.png", alt: "Sponsor 4" },
+  { id: 5, src: "/images/Aptos.png", alt: "Sponsor 5" },
 ];
 
 const Home = () => {
@@ -79,8 +79,8 @@ const Home = () => {
 
   return (
     <div className="z-auto min-h-screen bg-gray-900 text-white">
-      <script src="https://cdn.botpress.cloud/webchat/v2.2/inject.js"></script>
-      <script src="https://files.bpcontent.cloud/2025/02/01/18/20250201183607-3IM00KY8.js"></script>
+      {/* <script src="https://cdn.botpress.cloud/webchat/v2.2/inject.js"></script>
+      <script src="https://files.bpcontent.cloud/2025/02/01/18/20250201183607-3IM00KY8.js"></script> */}
       <Chatbot />
       <section className="desktop hero hidden md:block">
         <div className="3dviewer hidden md:block h-screen mx-auto">
@@ -95,10 +95,10 @@ const Home = () => {
         </div>
         <div className="hidden md:flex absolute top-64 left-24 flex-col">
           <div className="w-[35vw] title text-8xl font-bold">
-            Welcome to the web.
+            Digital India, Empowered Citizens
           </div>
           <div className="description pt-4 text-3xl opacity-80">
-            this is our description and what we do.
+            Your one-stop portal for seamless government services <br/> and digital documentation
           </div>
           <div className="action_button pt-6">
             <button className="group cursor-pointer slide-anime px-5 py-3 rounded-full w-[180px] bg-white text-[#403cd5] flex justify-between items-center font-semibold">
@@ -118,10 +118,10 @@ const Home = () => {
       >
         <div className="flex flex-col absolute top-28 items-center text-left p-4">
           <div className="title text-4xl font-extrabold pl-8">
-            Welcome to the web.
+            Digital India, Empowered Citizens
           </div>
           <div className="description pt-2 px-12 text-md opacity-80">
-            this is our description and what we do.
+            Your one-stop portal for seamless government services and digital documentation
           </div>
           <div className="action_button pt-80">
             <button className="group cursor-pointer slide-anime px-5 py-3 rounded-full w-[180px] bg-white text-[#403cd5] flex justify-between items-center font-semibold">
@@ -175,12 +175,14 @@ const Home = () => {
           <h2 className="text-3xl font-bold text-center mb-12 text-white">
             Our Sponsors
           </h2>
-          <div className="relative w-full overflow-hidden">
-            <div className="flex justify-center animate-marquee space-x-8">
+          {/* Desktop Sponsors */}
+          <div className="hidden md:block relative w-full overflow-hidden">
+            <div className="flex justify-center space-x-8">
               {sponsors.map((sponsor, index) => (
-                <div
+                <motion.div
                   key={index}
-                  className="flex-shrink-0 p-4 bg-white rounded-lg shadow-md"
+                  className="flex-shrink-0 p-6 bg-white/10 backdrop-blur-sm rounded-xl shadow-xl hover:bg-white/20 transition-all duration-300"
+                  whileHover={{ scale: 1.05 }}
                 >
                   <Image
                     src={sponsor.src}
@@ -188,15 +190,42 @@ const Home = () => {
                     height={0}
                     width={0}
                     sizes="100vw"
-                    style={{ width: "auto", height: "7vh" }}
+                    style={{ width: "auto", height: "8vh" }}
                     className="object-contain"
                   />
-                </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile Sponsors */}
+          <div className="md:hidden">
+            <div className="grid grid-cols-2 gap-4">
+              {sponsors.map((sponsor, index) => (
+                <motion.div
+                  key={index}
+                  className="p-4 bg-white/10 backdrop-blur-sm rounded-lg shadow-md hover:bg-white/20 transition-all duration-300"
+                  whileHover={{ scale: 1.02 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <Image
+                    src={sponsor.src}
+                    alt={sponsor.alt}
+                    height={0}
+                    width={0}
+                    sizes="100vw"
+                    style={{ width: "100%", height: "auto" }}
+                    className="object-contain"
+                  />
+                </motion.div>
               ))}
             </div>
           </div>
         </div>
       </section>
+
       <section className="py-16 bg-gray-900">
         <div className="container mx-auto px-4 text-center">
           <motion.h2
@@ -218,6 +247,95 @@ const Home = () => {
             >
               Sign Up Now
             </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* About Us Section */}
+      <section id="aboutus" className="py-20 bg-[#403cd5]">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-6xl mx-auto"
+          >
+            <h2 className="text-5xl font-bold mb-12 text-white text-center">
+              About <span className="text-white">Sathi</span>
+            </h2>
+            
+            <div className="grid md:grid-cols-2 gap-12 mb-16">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
+              >
+                <h3 className="text-2xl font-bold mb-4 text-[#403cd5]">Our Story</h3>
+                <p className="text-gray-800 leading-relaxed text-lg">
+                  Founded with a vision to revolutionize citizen services, Sathi emerged as a response 
+                  to the growing need for simplified government interactions. We bridge the gap between 
+                  citizens and government services through innovative digital solutions.
+                </p>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
+              >
+                <h3 className="text-2xl font-bold mb-4 text-[#403cd5]">Our Impact</h3>
+                <p className="text-gray-800 leading-relaxed text-lg">
+                  We've helped millions of citizens access government services seamlessly, reducing 
+                  processing times by 60% and improving service accessibility by 80%. Our platform 
+                  handles over 1 million transactions daily.
+                </p>
+              </motion.div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 mb-16">
+              {[
+                {
+                  title: "Our Mission",
+                  description: "To digitize and streamline government services, making them accessible to every citizen regardless of their location or technical expertise."
+                },
+                {
+                  title: "Our Vision",
+                  description: "Creating a fully digital, transparent, and accessible governance system that empowers citizens and promotes efficient service delivery."
+                },
+                {
+                  title: "Our Values",
+                  description: "Built on the pillars of security, accessibility, efficiency, and transparency. We prioritize user privacy and service reliability."
+                }
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-white p-8 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300"
+                >
+                  <h3 className="text-3xl font-bold mb-4 text-[#403cd5]">{item.title}</h3>
+                  <p className="text-gray-800 text-lg leading-relaxed">{item.description}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl shadow-xl">
+              <h3 className="text-3xl font-bold mb-8 text-[#403cd5] text-center">Key Achievements</h3>
+              <div className="grid md:grid-cols-4 gap-6">
+                {[
+                  { number: "10M+", label: "Active Users" },
+                  { number: "500+", label: "Services Integrated" },
+                  { number: "98%", label: "Success Rate" },
+                  { number: "24/7", label: "Support Available" }
+                ].map((stat, index) => (
+                  <motion.div
+                    key={index}
+                    whileHover={{ scale: 1.1 }}
+                    className="text-center p-6 bg-gray-50 rounded-lg hover:shadow-lg transition-all duration-300"
+                  >
+                    <div className="text-4xl font-bold text-[#403cd5] mb-2">{stat.number}</div>
+                    <div className="text-gray-800 text-lg font-medium">{stat.label}</div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>

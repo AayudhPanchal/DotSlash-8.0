@@ -8,8 +8,8 @@ import Script from "next/script";
 import "./globals.css";
 
 // export const metadata = {
-//   title: "Holy Trinity",
-//   description: "Created by Holy Trinity @ DotSlash 8.0",
+//   title: "Sathi",
+//   description: "Created by Sathi @ DotSlash 8.0",
 // };
 
 export default function RootLayout({ children }) {

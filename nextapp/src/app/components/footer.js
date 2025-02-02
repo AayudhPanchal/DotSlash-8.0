@@ -10,13 +10,15 @@ const Footer = () => {
         {/* Logo and Description */}
         <div className="text-center md:text-left">
           <img
-            src="/images/logo.png" // Replace with your logo image
+            // Replace with your logo image
+            src="/images/logo.jpg"
             alt="Logo"
-            className="w-16 h-16 mx-auto md:mx-0 mb-4 shadow-md"
+            className="w-16 h-16 mx-auto md:mx-0 mb-4 shadow-md rounded-sm"
           />
-          <h3 className="text-xl font-bold">Holy Trinity</h3>
+          <h3 className="text-xl font-bold">Sathi</h3>
           <p className="text-sm text-[#D1C4E9] mt-2 max-w-sm mx-auto md:mx-0">
-            Protecting nature and wildlife through innovation, transparency, and community-driven solutions.
+            Enhancing public administration through digital innovation,
+            transparency, and citizen engagement.
           </p>
         </div>
 
@@ -26,9 +28,11 @@ const Footer = () => {
           <ul className="space-y-2">
             {[
               { href: "/", label: "Home" },
-              { href: "/reports", label: "Reports" },
-              { href: "/features", label: "Features" },
+              { href: "/dashboard/recommend-policy", label: "Get Policies" },
+              { href: "/dashboard/apply-policy", label: "Apply for Policies" },
+              { href: "/dashboard/voting-policy", label: "Vote for Policies" },
               { href: "/aboutus", label: "About Us" },
+              { href: "/dashboard/profile", label: "Profile" },
             ].map(({ href, label }) => (
               <li key={href}>
                 <a
@@ -49,7 +53,10 @@ const Footer = () => {
             {[
               { href: "https://facebook.com", icon: <FaFacebook size={24} /> },
               { href: "https://twitter.com", icon: <FaTwitter size={24} /> },
-              { href: "https://instagram.com", icon: <FaInstagram size={24} /> },
+              {
+                href: "https://instagram.com",
+                icon: <FaInstagram size={24} />,
+              },
               { href: "https://linkedin.com", icon: <FaLinkedin size={24} /> },
             ].map(({ href, icon }) => (
               <a
@@ -69,7 +76,7 @@ const Footer = () => {
       {/* Bottom Section */}
       <div className="mt-8 border-t border-[#B39DDB] pt-6 text-center">
         <p className="text-sm text-[#D1C4E9]">
-          &copy; {new Date().getFullYear()} Holy Trinity. All Rights Reserved.
+          &copy; {new Date().getFullYear()} Sathi. All Rights Reserved.
         </p>
       </div>
     </footer>
