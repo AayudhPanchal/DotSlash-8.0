@@ -1,44 +1,88 @@
-import requests
-from bs4 import BeautifulSoup
+from flask import Flask, request, jsonify
+import pandas as pd
+import ollama
 
-def scrape_page(url, visited, max_depth, current_depth=0):
-    if current_depth > max_depth or url in visited:
-        return []
+app = Flask(__name__)
 
-    visited.add(url)
-    scraped_data = []
+# Load the dataset
+try:
+    df = pd.read_csv('data.csv')  # Ensure data.csv exists
+except FileNotFoundError:
+    df = pd.DataFrame(columns=['Title', 'Description'])  # Empty DataFrame as fallback
 
-    try:
-        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
-        soup = BeautifulSoup(response.text, "html.parser")
 
-        # Extract the title of the page
-        title = soup.title.text if soup.title else "No Title"
+def create_prompt(user_data, user_query, policies_df):
+    """
+    Generates a structured prompt for Llama 3.2 to find relevant government schemes.
+    """
+    prompt = "You are an AI assistant trained to match users with government schemes based on their details and query.\n\n"
 
-        # Extract the entire content of the page
-        body_content = soup.body.get_text(separator="\n") if soup.body else "No content available."
-        body_content = "\n".join([line for line in body_content.split("\n") if line.strip() != ""])
+    prompt += "User Details:\n"
+    prompt += f"- Name: {user_data.get('name', 'Not provided')}\n"
+    prompt += f"- Age: {user_data.get('age', 'Not provided')}\n"
+    prompt += f"- Gender: {user_data.get('gender', 'Not provided')}\n"
+    prompt += f"- Marital Status: {user_data.get('maritalStatus', 'Not provided')}\n"
+    prompt += f"- Occupation: {user_data.get('occupation', 'Not provided')}\n"
+    prompt += f"- Education: {user_data.get('education', 'Not provided')}\n"
+    prompt += f"- Government Employee: {'Yes' if user_data.get('isGovernmentEmployee', False) else 'No'}\n"
+    prompt += f"- Children: {len(user_data.get('children', []))}\n"
+    location = user_data.get('location', {})
+    prompt += f"- Location: Latitude {location.get('latitude', 'N/A')}, Longitude {location.get('longitude', 'N/A')}\n"
 
-        scraped_data.append({"title": title, "url": url, "content": body_content})
+    prompt += "\nUser Query:\n"
+    prompt += f"{user_query}\n\n"
 
-        # Find all links on the page
-        links = [a['href'] for a in soup.find_all('a', href=True) if a['href'].startswith('http')]
+    prompt += "List of Available Policies:\n"
+    for _, row in policies_df.iterrows():
+        prompt += f"- {row['Title']}: {row['Description']}\n"
 
-        # Recursively scrape each link
-        for link in links:
-            scraped_data.extend(scrape_page(link, visited, max_depth, current_depth + 1))
+    prompt += "\n### Task ###\n"
+    prompt += "Based on the user details and query, return ONLY a list of policy titles that are most relevant.\n"
+    prompt += "DO NOT provide explanations or extra information. Return only the policy titles in a bullet-point list format. Give the top 3 most relevant policies.\nGIVE THE ANSWERS ONLY IN THE MENTIONED FORMAT"
 
-    except Exception as e:
-        print(f"Error scraping {url}: {e}")
+    return prompt
 
-    return scraped_data
+def query_llama(prompt):
+    """
+    Queries the Llama 3.2 model with the structured prompt and extracts policy titles.
+    """
+    response = ollama.chat(model="llama3.2", messages=[{"role": "user", "content": prompt}])
+    return response["message"]["content"]
 
-# Example usage
-start_url = "https://services.india.gov.in/?ln=en"
-max_depth = 2  # Set the maximum depth for recursion
-visited = set()
-results = scrape_page(start_url, visited, max_depth)
+def get_full_policy_data(policy_titles):
+    """
+    Given a list of policy titles, return the full row of data from the DataFrame.
+    The rows will be joined by '^' as the delimiter.
+    """
+    full_data = []
+    for title in policy_titles:
+        # Strip any extra whitespace from the title
+        title = title[1:].strip()
+        # Search for the row that matches the policy title
+        policy_row = df[df['Title'] == title]
+        if not policy_row.empty:
+            # Join the row data with '^' as delimiter
+            full_row = '^'.join(policy_row.iloc[0].astype(str).values)
+            full_data.append(full_row)
+    return full_data
 
-with open("scraped_content.txt", "w", encoding="utf-8") as file:
-    for result in results:
-        file.write(f"Title: {result['title']}\nURL: {result['url']}\nContent:\n{result['content']}\n\n")
+@app.route('/recommend_policies', methods=['POST'])
+def recommend_policies():
+    data = request.json
+    user_data = data.get("user_data", {})
+    user_query = data.get("user_query", "")
+
+    if not user_query:
+        return jsonify({"error": "User query is required."}), 400
+
+    prompt = create_prompt(user_data, user_query, df)
+    response = query_llama(prompt)
+    policy_titles = response.split("\n") if response else []
+
+    # Get full data for the relevant policies
+    full_policy_data = get_full_policy_data(policy_titles)
+
+    return jsonify({"relevant_policies": full_policy_data})
+
+if __name__ == '__main__':
+    app.run(debug=True)
