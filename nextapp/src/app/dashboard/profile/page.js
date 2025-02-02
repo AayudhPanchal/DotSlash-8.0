@@ -217,7 +217,13 @@ export default function ProfilePage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    } else {
+      console.error('Event is undefined or does not have preventDefault method');
+      return;
+    }
+  
     try {
       const token = sessionStorage.getItem('user-auth-token');
       if (!token) {
@@ -225,7 +231,7 @@ export default function ProfilePage() {
         router.push('/auth/login');
         return;
       }
-
+  
       const response = await fetch('/api/user/update', {
         method: 'PUT',
         headers: {
@@ -234,18 +240,18 @@ export default function ProfilePage() {
         },
         body: JSON.stringify(formData)
       });
-
+  
       const data = await response.json();
       if (data.success) {
         toast.success('Profile updated successfully');
         sessionStorage.setItem('user-data', JSON.stringify(data.user));
-        setUser(data.user);
-        setEditing(false);
+        // Redirect to dashboard or another page if needed
       } else {
-        toast.error(data.message);
+        toast.error(data.message || 'Failed to update profile');
       }
     } catch (error) {
-      toast.error('Failed to update profile');
+      console.error('Profile update error:', error);
+      toast.error('An error occurred while updating the profile');
     }
   };
 
@@ -618,7 +624,7 @@ export default function ProfilePage() {
               Cancel
             </button>
             <button
-              onClick={handleSubmit}
+            type="submit"
               className="px-4 py-2 bg-[#403cd5] text-white rounded-md hover:bg-[#302cb0]"
             >
               Save Changes
