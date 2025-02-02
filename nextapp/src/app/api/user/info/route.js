@@ -1,38 +1,51 @@
-import dbConnect from "@/utils/db";
-import User from "@/models/user";
 import { NextResponse } from "next/server";
+import User from "@/models/user";
+import dbConnect from "@/utils/db";
+import jwt from 'jsonwebtoken';
 
-export async function GET(req) {
+export async function GET(request) {
     try {
-        await dbConnect(); // Add await here
-        const userId = req?.headers?.get('user-data');
+        await dbConnect();
+
+        const token = request.headers.get('user-data');
         
+        if (!token) {
+            return NextResponse.json({
+                success: false,
+                message: "No token provided"
+            }, { status: 401 });
+        }
+
+        // Decode JWT token to get userId
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
         if (!userId) {
             return NextResponse.json({
                 success: false,
-                message: 'No user ID provided'
-            });
+                message: "Invalid token"
+            }, { status: 401 });
         }
 
         const userData = await User.findById(userId).select('-password');
-        
+
         if (!userData) {
             return NextResponse.json({
                 success: false,
-                message: 'User Not Found'
-            });
+                message: "User not found"
+            }, { status: 404 });
         }
 
         return NextResponse.json({
             success: true,
-            data: userData.toObject() // Convert to plain object
+            data: userData
         });
 
     } catch (error) {
-        console.error("API Error:", error);
-        return NextResponse.json({ 
-            success: false, 
-            message: error.message 
-        });
+        console.error("Error in user info:", error);
+        return NextResponse.json({
+            success: false,
+            message: error.message || "Failed to fetch user info"
+        }, { status: 500 });
     }
 }

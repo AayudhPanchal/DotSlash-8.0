@@ -1,19 +1,24 @@
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { motion } from "framer-motion";
+import TypewriterComponent from "typewriter-effect";
+import { FiSend } from 'react-icons/fi';
 
 export default function PolicyPage() {
+  const [started, setStarted] = useState(false);
   const [policies, setPolicies] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
   const [expandedPolicy, setExpandedPolicy] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userInput, setUserInput] = useState("");
+  const [chatHistory, setChatHistory] = useState([]);
+  const [recentResult, setRecentResult] = useState(null);
 
   const fetchUserProfile = async () => {
     try {
-      const userId = sessionStorage.getItem("user-auth-token");
-      console.log("UserId from session:", userId); // Debug log
-
-      if (!userId) {
+      const token = sessionStorage.getItem("user-auth-token");
+      if (!token) {
         console.log("No auth token found");
         return;
       }
@@ -22,15 +27,18 @@ export default function PolicyPage() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "user-data": userId,
+          "user-data": token,
         },
       });
 
-      console.log("Response status:", response.status); // Debug log
-      
-      const data = await response.json();
-      console.log("Response data:", data); // Debug log
+      if (response.status === 401) {
+        // Handle unauthorized access
+        sessionStorage.removeItem("user-auth-token");
+        window.location.href = "/login";
+        return;
+      }
 
+      const data = await response.json();
       if (data.success && data.data) {
         setUserProfile(data.data);
       } else {
@@ -60,6 +68,43 @@ export default function PolicyPage() {
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!userInput.trim()) return;
+
+    setChatHistory(prev => [...prev, { type: 'user', content: userInput }]);
+    
+    try {
+      setLoading(true);
+      const response = await axios.post("/api/recommendpolicies/chat", {
+        message: userInput,
+        userId: sessionStorage.getItem("user-auth-token")
+      });
+      
+      if (response.data.success) {
+        setRecentResult({
+          query: userInput,
+          policies: response.data.policies,
+          reply: response.data.reply
+        });
+        setPolicies(prev => [...response.data.policies, ...prev]);
+        setChatHistory(prev => [...prev, { 
+          type: 'assistant', 
+          content: response.data.reply 
+        }]);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setChatHistory(prev => [...prev, { 
+        type: 'assistant', 
+        content: "Sorry, I encountered an error processing your request." 
+      }]);
+    } finally {
+      setLoading(false);
+      setUserInput("");
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -75,76 +120,212 @@ export default function PolicyPage() {
     setExpandedPolicy(expandedPolicy === id ? null : id);
   };
 
+  const welcomeText = "Welcome to Policy Advisor AI";
+  const subtitleText = "I can help you find the perfect insurance policies based on your profile.";
+
+  if (!started) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white to-gray-50">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-6 max-w-2xl mx-auto p-4"
+        >
+          <h1 className="text-4xl font-bold text-[#403cd5]">
+            <TypewriterComponent
+              options={{
+                strings: [welcomeText],
+                autoStart: true,
+                loop: false,
+              }}
+            />
+          </h1>
+          <p className="text-xl text-gray-600">
+            <TypewriterComponent
+              options={{
+                strings: [subtitleText],
+                autoStart: true,
+                delay: 50,
+                loop: false,
+              }}
+            />
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setStarted(true)}
+            className="px-8 py-4 bg-[#403cd5] text-white rounded-xl font-semibold shadow-lg hover:bg-[#302cb0] transition-colors"
+          >
+            Start Conversation
+          </motion.button>
+        </motion.div>
+      </div>
+    );
+  }
+
   if (loading) return <div>Loading...</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6">
-      {/* User Profile Section */}
-      {userProfile && (
-        <div className="mb-8 p-4 md:p-6 bg-white rounded-lg shadow-lg">
-          <h3 className="text-2xl font-bold text-[#403cd5] mb-4">Your Profile</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-gray-600"><span className="font-semibold">Name:</span> {userProfile.name}</p>
-              <p className="text-gray-600"><span className="font-semibold">Age:</span> {userProfile.age}</p>
-              <p className="text-gray-600"><span className="font-semibold">Gender:</span> {userProfile.gender}</p>
-              <p className="text-gray-600">
-                <span className="font-semibold">Marital Status:</span> {userProfile.maritalStatus}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-600">
-                <span className="font-semibold">Occupation:</span> {userProfile.occupation}
-              </p>
-              <p className="text-gray-600">
-                <span className="font-semibold">Government Employee:</span> {userProfile.isGovernmentEmployee ? "Yes" : "No"}
-              </p>
-              {userProfile.children && userProfile.children.length > 0 && (
-                <p className="text-gray-600">
-                  <span className="font-semibold">Children:</span> {userProfile.children.length}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Recommended Policies Section */}
-      <div className="bg-white shadow-lg rounded-lg p-4 md:p-6">
-        <h2 className="text-3xl font-bold text-[#403cd5] mb-6">Recommended Policies</h2>
-        <div className="space-y-4">
-          {policies.map((policy) => (
-            <div
-              key={policy._id}
-              className="p-4 md:p-6 rounded-lg bg-gradient-to-r from-[#403cd5]/10 to-white border border-[#403cd5]/20 hover:from-[#403cd5]/20 transition-all duration-300"
-            >
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-[#403cd5]">{policy.title}</h3>
-                <button
-                  onClick={() => togglePolicyDetails(policy._id)}
-                  className="px-4 py-2 rounded-lg text-[#403cd5] hover:bg-[#403cd5]/10 transition-all duration-300"
-                >
-                  {expandedPolicy === policy._id ? "Hide Details" : "View Details"}
-                </button>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-6"
+      >
+        {/* Chat Interface */}
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="h-[300px] overflow-y-auto space-y-4 mb-4 scrollbar-thin scrollbar-thumb-[#403cd5]/20">
+            {chatHistory.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                <svg className="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <p className="text-lg font-medium">Start a conversation</p>
+                <p className="text-sm">Ask me about policy recommendations</p>
               </div>
-              
-              <p className="text-gray-600 mt-2">{policy.description}</p>
-              <div className="text-sm text-gray-500 mt-1">Category: {policy.category}</div>
+            ) : (
+              chatHistory.map((msg, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`p-3 rounded-lg ${
+                    msg.type === 'user' 
+                      ? 'bg-[#403cd5] text-white ml-auto' 
+                      : 'bg-gray-100 text-gray-800'
+                  } max-w-[80%] ${
+                    msg.type === 'user' ? 'ml-auto' : 'mr-auto'
+                  }`}
+                >
+                  {msg.content}
+                </motion.div>
+              ))
+            )}
+          </div>
 
-              {expandedPolicy === policy._id && (
-                <div className="mt-4 p-4 bg-white rounded-lg border border-[#403cd5]/10">
-                  <p className="text-gray-600">{policy.details}</p>
-                  {userProfile && (
-                    <div className="mt-2 text-sm text-[#403cd5]">
-                      This policy matches your profile based on your {policy.category} needs.
+          {/* Chat Input */}
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              type="text"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              placeholder="Ask about policies..."
+              className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#403cd5]"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="p-3 bg-[#403cd5] text-white rounded-lg hover:bg-[#302cb0] transition-colors disabled:bg-gray-400"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"/>
+              ) : (
+                <FiSend size={20} />
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Recent Result */}
+        {recentResult && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-[#403cd5]/5 rounded-xl p-6 border border-[#403cd5]/20"
+          >
+            <h3 className="text-lg font-semibold text-[#403cd5] mb-4">Recent Recommendations</h3>
+            <p className="text-gray-600 mb-4">{recentResult.reply}</p>
+            <div className="grid gap-4">
+              {recentResult.policies.map((policy) => (
+                <motion.div
+                  key={policy._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-6 rounded-xl bg-gradient-to-r from-[#403cd5]/5 to-transparent border border-[#403cd5]/10"
+                >
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-[#403cd5]">{policy.title}</h3>
+                    <button
+                      onClick={() => togglePolicyDetails(policy._id)}
+                      className="px-4 py-2 rounded-lg text-[#403cd5] hover:bg-[#403cd5]/10 transition-all duration-300"
+                    >
+                      {expandedPolicy === policy._id ? "Hide Details" : "View Details"}
+                    </button>
+                  </div>
+                  
+                  <p className="text-gray-600 mt-2">{policy.description}</p>
+                  <div className="text-sm text-gray-500 mt-1">Category: {policy.category}</div>
+
+                  {expandedPolicy === policy._id && (
+                    <div className="mt-4 p-4 bg-white rounded-lg border border-[#403cd5]/10">
+                      <p className="text-gray-600">{policy.details}</p>
+                      {userProfile && (
+                        <div className="mt-2 text-sm text-[#403cd5]">
+                          This policy matches your profile based on your {policy.category} needs.
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
-              )}
+                </motion.div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </motion.div>
+        )}
+
+        {/* Previous Results */}
+        {policies.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-600">Previous Recommendations</h3>
+            <div className="grid gap-4">
+              {policies.filter(p => !recentResult?.policies.find(rp => rp._id === p._id))
+                .map((policy) => (
+                  <motion.div
+                    key={policy._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-6 rounded-xl bg-gradient-to-r from-[#403cd5]/5 to-transparent border border-[#403cd5]/10"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-xl font-bold text-[#403cd5]">{policy.title}</h3>
+                      <button
+                        onClick={() => togglePolicyDetails(policy._id)}
+                        className="px-4 py-2 rounded-lg text-[#403cd5] hover:bg-[#403cd5]/10 transition-all duration-300"
+                      >
+                        {expandedPolicy === policy._id ? "Hide Details" : "View Details"}
+                      </button>
+                    </div>
+                    
+                    <p className="text-gray-600 mt-2">{policy.description}</p>
+                    <div className="text-sm text-gray-500 mt-1">Category: {policy.category}</div>
+
+                    {expandedPolicy === policy._id && (
+                      <div className="mt-4 p-4 bg-white rounded-lg border border-[#403cd5]/10">
+                        <p className="text-gray-600">{policy.details}</p>
+                        {userProfile && (
+                          <div className="mt-2 text-sm text-[#403cd5]">
+                            This policy matches your profile based on your {policy.category} needs.
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {policies.length === 0 && !loading && (
+          <div className="text-center py-10 bg-white rounded-xl shadow-lg">
+            <img
+              src="/empty-state.svg"
+              alt="No policies"
+              className="w-32 h-32 mx-auto mb-4 opacity-50"
+            />
+            <h3 className="text-xl font-semibold text-gray-600">No recommendations yet</h3>
+            <p className="text-gray-500">Start a conversation to get personalized policy recommendations</p>
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 }

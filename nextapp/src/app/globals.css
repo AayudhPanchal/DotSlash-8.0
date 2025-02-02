@@ -52,3 +52,17 @@ body > .skiptranslate {
 body > .goog-te-banner-frame {
   display: none !important;
 }
+
+/* Add to your globals.css */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
