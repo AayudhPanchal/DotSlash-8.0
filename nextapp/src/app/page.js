@@ -98,7 +98,8 @@ const Home = () => {
             Digital India, Empowered Citizens
           </div>
           <div className="description pt-4 text-3xl opacity-80">
-            Your one-stop portal for seamless government services <br/> and digital documentation
+            Your one-stop portal for seamless government services <br /> and
+            digital documentation
           </div>
           <div className="action_button pt-6">
             <button className="group cursor-pointer slide-anime px-5 py-3 rounded-full w-[180px] bg-white text-[#403cd5] flex justify-between items-center font-semibold">
@@ -114,16 +115,17 @@ const Home = () => {
       {/* Mobile view */}
       <section
         className="mobile hero md:hidden bg-cover bg-center h-screen"
-        style={{ backgroundImage: "url('/main.png')" }}
+        style={{ backgroundImage: "url('images/main.png')" }}
       >
-        <div className="flex flex-col absolute top-28 items-center text-left p-4">
+        <div className="flex flex-col absolute top-16 items-center text-left p-4">
           <div className="title text-4xl font-extrabold pl-8">
             Digital India, Empowered Citizens
           </div>
-          <div className="description pt-2 px-12 text-md opacity-80">
-            Your one-stop portal for seamless government services and digital documentation
+          <div className="description pt-2 px-12 text-sm opacity-80">
+            Your one-stop portal for seamless government services and digital
+            documentation
           </div>
-          <div className="action_button pt-80">
+          <div className="action_button pt-60">
             <button className="group cursor-pointer slide-anime px-5 py-3 rounded-full w-[180px] bg-white text-[#403cd5] flex justify-between items-center font-semibold">
               Schedule Call{" "}
               <div className="group-hover:translate-x-2 transition-all">
@@ -169,8 +171,7 @@ const Home = () => {
         }
       />
 
-      {/* Sponsors */}
-      <section className="py-16 bg-gray-800">
+      <section className="py-24 bg-[#403cd5]">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-white">
             Our Sponsors
@@ -181,7 +182,7 @@ const Home = () => {
               {sponsors.map((sponsor, index) => (
                 <motion.div
                   key={index}
-                  className="flex-shrink-0 p-6 bg-white/10 backdrop-blur-sm rounded-xl shadow-xl hover:bg-white/20 transition-all duration-300"
+                  className="flex-shrink-0 p-8 bg-white/10 backdrop-blur-sm rounded-xl shadow-xl hover:bg-white/20 transition-all duration-300"
                   whileHover={{ scale: 1.05 }}
                 >
                   <Image
@@ -190,7 +191,7 @@ const Home = () => {
                     height={0}
                     width={0}
                     sizes="100vw"
-                    style={{ width: "auto", height: "8vh" }}
+                    style={{ width: "auto", height: "10vh" }}
                     className="object-contain"
                   />
                 </motion.div>
@@ -226,7 +227,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="py-16 bg-gray-900">
+      {/* <section className="py-16 bg-gray-900">
         <div className="container mx-auto px-4 text-center">
           <motion.h2
             className="text-3xl font-bold mb-6"
@@ -249,10 +250,10 @@ const Home = () => {
             </Link>
           </motion.div>
         </div>
-      </section>
+      </section> */}
 
       {/* About Us Section */}
-      <section id="aboutus" className="py-20 bg-[#403cd5]">
+      <section id="aboutus" className="py-20 bg-[#f8f9fa]">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -260,20 +261,23 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="max-w-6xl mx-auto"
           >
-            <h2 className="text-5xl font-bold mb-12 text-white text-center">
-              About <span className="text-white">Sathi</span>
+            <h2 className="text-5xl font-bold mb-12 text-[#403cd5] text-center">
+              About <span className="">Sathi</span>
             </h2>
-            
+
             <div className="grid md:grid-cols-2 gap-12 mb-16">
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
               >
-                <h3 className="text-2xl font-bold mb-4 text-[#403cd5]">Our Story</h3>
+                <h3 className="text-2xl font-bold mb-4 text-[#403cd5]">
+                  Our Story
+                </h3>
                 <p className="text-gray-800 leading-relaxed text-lg">
-                  Founded with a vision to revolutionize citizen services, Sathi emerged as a response 
-                  to the growing need for simplified government interactions. We bridge the gap between 
-                  citizens and government services through innovative digital solutions.
+                  Founded with a vision to revolutionize citizen services, Sathi
+                  emerged as a response to the growing need for simplified
+                  government interactions. We bridge the gap between citizens
+                  and government services through innovative digital solutions.
                 </p>
               </motion.div>
 
@@ -281,11 +285,14 @@ const Home = () => {
                 whileHover={{ scale: 1.02 }}
                 className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
               >
-                <h3 className="text-2xl font-bold mb-4 text-[#403cd5]">Our Impact</h3>
+                <h3 className="text-2xl font-bold mb-4 text-[#403cd5]">
+                  Our Impact
+                </h3>
                 <p className="text-gray-800 leading-relaxed text-lg">
-                  We've helped millions of citizens access government services seamlessly, reducing 
-                  processing times by 60% and improving service accessibility by 80%. Our platform 
-                  handles over 1 million transactions daily.
+                  We've helped millions of citizens access government services
+                  seamlessly, reducing processing times by 60% and improving
+                  service accessibility by 80%. Our platform handles over 1
+                  million transactions daily.
                 </p>
               </motion.div>
             </div>
@@ -294,44 +301,57 @@ const Home = () => {
               {[
                 {
                   title: "Our Mission",
-                  description: "To digitize and streamline government services, making them accessible to every citizen regardless of their location or technical expertise."
+                  description:
+                    "To digitize and streamline government services, making them accessible to every citizen regardless of their location or technical expertise.",
                 },
                 {
                   title: "Our Vision",
-                  description: "Creating a fully digital, transparent, and accessible governance system that empowers citizens and promotes efficient service delivery."
+                  description:
+                    "Creating a fully digital, transparent, and accessible governance system that empowers citizens and promotes efficient service delivery.",
                 },
                 {
                   title: "Our Values",
-                  description: "Built on the pillars of security, accessibility, efficiency, and transparency. We prioritize user privacy and service reliability."
-                }
+                  description:
+                    "Built on the pillars of security, accessibility, efficiency, and transparency. We prioritize user privacy and service reliability.",
+                },
               ].map((item, index) => (
                 <motion.div
                   key={index}
                   whileHover={{ scale: 1.05 }}
                   className="bg-white p-8 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300"
                 >
-                  <h3 className="text-3xl font-bold mb-4 text-[#403cd5]">{item.title}</h3>
-                  <p className="text-gray-800 text-lg leading-relaxed">{item.description}</p>
+                  <h3 className="text-3xl font-bold mb-4 text-[#403cd5]">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-800 text-lg leading-relaxed">
+                    {item.description}
+                  </p>
                 </motion.div>
               ))}
             </div>
 
-            <div className="bg-white p-8 rounded-2xl shadow-xl">
-              <h3 className="text-3xl font-bold mb-8 text-[#403cd5] text-center">Key Achievements</h3>
+            <div className="bg-[#403cd5] p-8 rounded-2xl shadow-xl">
+              <h3 className="text-3xl font-bold mb-8 text-white text-center">
+                Key Achievements
+              </h3>
               <div className="grid md:grid-cols-4 gap-6">
                 {[
                   { number: "10M+", label: "Active Users" },
                   { number: "500+", label: "Services Integrated" },
                   { number: "98%", label: "Success Rate" },
-                  { number: "24/7", label: "Support Available" }
+                  { number: "24/7", label: "Support Available" },
                 ].map((stat, index) => (
                   <motion.div
                     key={index}
                     whileHover={{ scale: 1.1 }}
-                    className="text-center p-6 bg-gray-50 rounded-lg hover:shadow-lg transition-all duration-300"
+                    className="text-center p-6 bg-white rounded-lg hover:shadow-lg transition-all duration-300"
                   >
-                    <div className="text-4xl font-bold text-[#403cd5] mb-2">{stat.number}</div>
-                    <div className="text-gray-800 text-lg font-medium">{stat.label}</div>
+                    <div className="text-4xl font-bold bg-[#403cd5] mb-2">
+                      {stat.number}
+                    </div>
+                    <div className="text-gray-800 text-lg font-medium">
+                      {stat.label}
+                    </div>
                   </motion.div>
                 ))}
               </div>

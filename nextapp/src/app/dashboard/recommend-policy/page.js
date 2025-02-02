@@ -13,7 +13,6 @@ export default function PolicyPage() {
   const [loading, setLoading] = useState(true);
   const [userInput, setUserInput] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
-  const [recentResult, setRecentResult] = useState(null);
 
   const fetchUserProfile = async () => {
     try {
@@ -90,16 +89,7 @@ export default function PolicyPage() {
 
         console.log("Formatted Policies:", formattedPolicies); // Log the formatted data
 
-        setRecentResult({
-          query: userInput,
-          policies: formattedPolicies,
-          reply: response.data.reply
-        });
         setPolicies(prev => [...formattedPolicies, ...prev]);
-        setChatHistory(prev => [...prev, { 
-          type: 'assistant', 
-          content: response.data.reply 
-        }]);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -234,17 +224,12 @@ export default function PolicyPage() {
           </form>
         </div>
 
-        {/* Recent Result */}
-        {recentResult && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-[#403cd5]/5 rounded-xl p-6 border border-[#403cd5]/20"
-          >
-            <h3 className="text-lg font-semibold text-[#403cd5] mb-4">Recent Recommendations</h3>
-            <p className="text-gray-600 mb-4">{recentResult.reply}</p>
+        {/* Policy Cards */}
+        {policies.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-600">Policy Recommendations</h3>
             <div className="grid gap-4">
-              {recentResult.policies.map((policy, idx) => (
+              {policies.map((policy, idx) => (
                 <motion.div
                   key={idx}
                   initial={{ opacity: 0, y: 10 }}
@@ -277,49 +262,6 @@ export default function PolicyPage() {
                   )}
                 </motion.div>
               ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Previous Results */}
-        {policies.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-600">Previous Recommendations</h3>
-            <div className="grid gap-4">
-              {policies.filter(p => !recentResult?.policies.find(rp => rp.title === p.title))
-                .map((policy, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-6 rounded-xl bg-gradient-to-r from-[#403cd5]/5 to-transparent border border-[#403cd5]/10"
-                  >
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-xl font-bold text-[#403cd5]">{policy.title}</h3>
-                      <button
-                        onClick={() => togglePolicyDetails(idx)}
-                        className="px-4 py-2 rounded-lg text-[#403cd5] hover:bg-[#403cd5]/10 transition-all duration-300"
-                      >
-                        {expandedPolicy === idx ? "Hide Details" : "View Details"}
-                      </button>
-                    </div>
-                    
-                    <p className="text-gray-600 mt-2">{policy.description}</p>
-                    <div className="text-sm text-gray-500 mt-1">Benefit: {policy.benefit}</div>
-                    <div className="text-sm text-gray-500 mt-1">Required Documents: {policy.requiredDocuments}</div>
-                    <div className="text-sm text-gray-500 mt-1">Website Link: <a href={policy.websiteLink} target="_blank" rel="noopener noreferrer">{policy.websiteLink}</a></div>
-
-                    {expandedPolicy === idx && (
-                      <div className="mt-4 p-4 bg-white rounded-lg border border-[#403cd5]/10">
-                        {userProfile && (
-                          <div className="mt-2 text-sm text-[#403cd5]">
-                            This policy matches your profile based on your {policy.category} needs.
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
             </div>
           </div>
         )}
