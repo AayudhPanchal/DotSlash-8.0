@@ -149,8 +149,22 @@ export default function ProfilePage() {
     ];
     
     let completionScore = 0;
+    let totalWeight = 0;
     
     requiredFields.forEach(field => {
+      // Skip department field if not a government employee
+      if (field.name === 'department' && !userData.isGovernmentEmployee) {
+        return;
+      }
+      
+      // Skip spouse and children related fields if not applicable
+      if ((field.name === 'spouseName' || field.name.startsWith('children')) 
+          && (userData.maritalStatus !== 'married' || userData.age < 21)) {
+        return;
+      }
+
+      totalWeight += field.weight;
+      
       let value;
       if (field.name.includes('.')) {
         const [parent, child] = field.name.split('.');
@@ -164,7 +178,7 @@ export default function ProfilePage() {
       }
     });
 
-    return Math.min(completionScore, 100);
+    return Math.min((completionScore / totalWeight) * 100, 100);
   };
 
   const handleChange = (e) => {
@@ -216,14 +230,7 @@ export default function ProfilePage() {
     });
   };
 
-  const handleSubmit = async (e) => {
-    if (e && e.preventDefault) {
-      e.preventDefault();
-    } else {
-      console.error('Event is undefined or does not have preventDefault method');
-      return;
-    }
-  
+  const handleSubmit = async () => {
     try {
       const token = sessionStorage.getItem('user-auth-token');
       if (!token) {
@@ -231,7 +238,7 @@ export default function ProfilePage() {
         router.push('/auth/login');
         return;
       }
-  
+
       const response = await fetch('/api/user/update', {
         method: 'PUT',
         headers: {
@@ -240,12 +247,13 @@ export default function ProfilePage() {
         },
         body: JSON.stringify(formData)
       });
-  
+
       const data = await response.json();
+      
       if (data.success) {
         toast.success('Profile updated successfully');
         sessionStorage.setItem('user-data', JSON.stringify(data.user));
-        // Redirect to dashboard or another page if needed
+        setEditing(false); // Exit edit mode
       } else {
         toast.error(data.message || 'Failed to update profile');
       }
@@ -253,6 +261,16 @@ export default function ProfilePage() {
       console.error('Profile update error:', error);
       toast.error('An error occurred while updating the profile');
     }
+  };
+
+  const handleCancel = () => {
+    // Reset form data to original user data
+    const userData = JSON.parse(sessionStorage.getItem('user-data'));
+    setFormData(prev => ({
+      ...prev,
+      ...userData
+    }));
+    setEditing(false);
   };
 
   if (loading) {
@@ -329,45 +347,45 @@ export default function ProfilePage() {
     <FormSection title="Address Information" disabled={!editing}>
       {/* Permanent Address */}
       <div className="mb-6">
-        <h3 className="text-lg font-medium mb-3">Permanent Address</h3>
+        <h3 className="text-xl font-medium mb-4">Permanent Address</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
-            <label className="block text-gray-700">Street</label>
+            <label className="block text-lg font-medium text-gray-700 mb-2">Street</label>
             <input
               type="text"
               value={formData.permanentAddress.street}
               onChange={(e) => handleAddressChange('permanent', 'street', e.target.value)}
-              className="form-input mt-1 block w-full rounded-md"
+              className="w-full px-4 py-3 text-lg rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#403cd5] focus:border-transparent"
               disabled={!editing}
             />
           </div>
           <div>
-            <label className="block text-gray-700">City</label>
+            <label className="block text-lg font-medium text-gray-700 mb-2">City</label>
             <input
               type="text"
               value={formData.permanentAddress.city}
               onChange={(e) => handleAddressChange('permanent', 'city', e.target.value)}
-              className="form-input mt-1 block w-full rounded-md"
+              className="w-full px-4 py-3 text-lg rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#403cd5] focus:border-transparent"
               disabled={!editing}
             />
           </div>
           <div>
-            <label className="block text-gray-700">State</label>
+            <label className="block text-lg font-medium text-gray-700 mb-2">State</label>
             <input
               type="text"
               value={formData.permanentAddress.state}
               onChange={(e) => handleAddressChange('permanent', 'state', e.target.value)}
-              className="form-input mt-1 block w-full rounded-md"
+              className="w-full px-4 py-3 text-lg rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#403cd5] focus:border-transparent"
               disabled={!editing}
             />
           </div>
           <div>
-            <label className="block text-gray-700">Pincode</label>
+            <label className="block text-lg font-medium text-gray-700 mb-2">Pincode</label>
             <input
               type="text"
               value={formData.permanentAddress.pincode}
               onChange={(e) => handleAddressChange('permanent', 'pincode', e.target.value)}
-              className="form-input mt-1 block w-full rounded-md"
+              className="w-full px-4 py-3 text-lg rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#403cd5] focus:border-transparent"
               disabled={!editing}
             />
           </div>
@@ -393,42 +411,42 @@ export default function ProfilePage() {
         {!formData.currentAddress.sameAsPermanent && (
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-gray-700">Street</label>
+              <label className="block text-lg font-medium text-gray-700 mb-2">Street</label>
               <input
                 type="text"
                 value={formData.currentAddress.street}
                 onChange={(e) => handleAddressChange('current', 'street', e.target.value)}
-                className="form-input mt-1 block w-full rounded-md"
+                className="w-full px-4 py-3 text-lg rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#403cd5] focus:border-transparent"
                 disabled={!editing}
               />
             </div>
             <div>
-              <label className="block text-gray-700">City</label>
+              <label className="block text-lg font-medium text-gray-700 mb-2">City</label>
               <input
                 type="text"
                 value={formData.currentAddress.city}
                 onChange={(e) => handleAddressChange('current', 'city', e.target.value)}
-                className="form-input mt-1 block w-full rounded-md"
+                className="w-full px-4 py-3 text-lg rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#403cd5] focus:border-transparent"
                 disabled={!editing}
               />
             </div>
             <div>
-              <label className="block text-gray-700">State</label>
+              <label className="block text-lg font-medium text-gray-700 mb-2">State</label>
               <input
                 type="text"
                 value={formData.currentAddress.state}
                 onChange={(e) => handleAddressChange('current', 'state', e.target.value)}
-                className="form-input mt-1 block w-full rounded-md"
+                className="w-full px-4 py-3 text-lg rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#403cd5] focus:border-transparent"
                 disabled={!editing}
               />
             </div>
             <div>
-              <label className="block text-gray-700">Pincode</label>
+              <label className="block text-lg font-medium text-gray-700 mb-2">Pincode</label>
               <input
                 type="text"
                 value={formData.currentAddress.pincode}
                 onChange={(e) => handleAddressChange('current', 'pincode', e.target.value)}
-                className="form-input mt-1 block w-full rounded-md"
+                className="w-full px-4 py-3 text-lg rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#403cd5] focus:border-transparent"
                 disabled={!editing}
               />
             </div>
@@ -646,17 +664,34 @@ export default function ProfilePage() {
     <div className="max-w-5xl mx-auto p-4 md:p-8 relative pb-24">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-4xl font-bold text-gray-900">Profile</h1>
-        <button
-          onClick={() => editing ? handleSubmit() : setEditing(true)}
-          className={`px-6 py-3 rounded-lg transition-colors duration-300 text-lg font-medium flex items-center gap-2
-            ${editing 
-              ? 'bg-green-600 hover:bg-green-700 text-white'
-              : 'bg-[#403cd5] hover:bg-[#302cb0] text-white'
-            }`}
-        >
-          <span className="material-icons">{editing ? 'save' : 'edit'}</span>
-          {editing ? 'Save Changes' : 'Edit Profile'}
-        </button>
+        <div className="flex gap-4">
+          {editing ? (
+            <>
+              <button
+                onClick={handleCancel}
+                className="px-6 py-3 rounded-lg bg-gray-500 hover:bg-gray-600 text-white transition-colors duration-300 text-lg font-medium flex items-center gap-2"
+              >
+                <span className="material-icons">close</span>
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors duration-300 text-lg font-medium flex items-center gap-2"
+              >
+                <span className="material-icons">save</span>
+                Save Changes
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setEditing(true)}
+              className="px-6 py-3 rounded-lg bg-[#403cd5] hover:bg-[#302cb0] text-white transition-colors duration-300 text-lg font-medium flex items-center gap-2"
+            >
+              <span className="material-icons">edit</span>
+              Edit Profile
+            </button>
+          )}
+        </div>
       </div>
 
       <ProgressBar completionPercentage={calculateProfileCompletion(formData)} />
@@ -790,17 +825,6 @@ export default function ProfilePage() {
               )}
             </div>
           </FormSection>
-        )}
-
-        {editing && (
-          <div className="fixed bottom-8 right-8">
-            <button
-              onClick={() => setEditing(false)}
-              className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-300 mr-4"
-            >
-              Cancel
-            </button>
-          </div>
         )}
       </div>
     </div>

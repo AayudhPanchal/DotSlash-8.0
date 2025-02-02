@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
+import { format } from 'date-fns';
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
@@ -12,18 +13,73 @@ export default function AdminDashboard() {
   const [selectedGender, setSelectedGender] = useState('all');
   const [selectedOccupation, setSelectedOccupation] = useState('all');
   const [selectedEducation, setSelectedEducation] = useState('all');
-  const [statsData, setStatsData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [statsData, setStatsData] = useState({
+    userStats: [],
+    occupationStats: [],
+    recommendationStats: [],
+    votingPoliciesStats: [],
+    policyVoteStats: [],
+    locationData: []
+  });
+  const [policyApplications, setPolicyApplications] = useState([]);
+  const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [policyError, setPolicyError] = useState(null);
 
   useEffect(() => {
     fetchStats();
+    fetchPolicyApplications();
   }, [selectedAgeGroup, selectedGender, selectedOccupation, selectedEducation]);
 
   const fetchStats = async () => {
-    const response = await fetch(
-      `/api/admin/stats?ageGroup=${selectedAgeGroup}&gender=${selectedGender}&occupation=${selectedOccupation}&education=${selectedEducation}`
-    );
-    const data = await response.json();
-    setStatsData(data);
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `/api/admin/stats?ageGroup=${selectedAgeGroup}&gender=${selectedGender}&occupation=${selectedOccupation}&education=${selectedEducation}`
+      );
+      const data = await response.json();
+      setStatsData(data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPolicyApplications = async () => {
+    try {
+      const response = await fetch('/api/admin/policy-applications');
+      const data = await response.json();
+      if (!data) throw new Error('No data received');
+      setPolicyApplications(data);
+      setPolicyError(null);
+    } catch (error) {
+      console.error('Error fetching policy applications:', error);
+      setPolicyError('Failed to load policy applications');
+      setPolicyApplications([]);
+    }
+  };
+
+  const sortPolicies = (policies) => {
+    return [...policies].sort((a, b) => {
+      if (sortConfig.key === 'createdAt') {
+        return sortConfig.direction === 'asc'
+          ? new Date(a.createdAt) - new Date(b.createdAt)
+          : new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      return sortConfig.direction === 'asc'
+        ? a[sortConfig.key].localeCompare(b[sortConfig.key])
+        : b[sortConfig.key].localeCompare(a[sortConfig.key]);
+    });
+  };
+
+  const getStatusBadgeColor = (status) => {
+    switch (status) {
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      default: return 'bg-yellow-100 text-yellow-800';
+    }
   };
 
   const userChartConfig = {
@@ -294,12 +350,18 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-12 gap-6">
         {/* Demographics Section */}
         <div className="col-span-12 md:col-span-5 bg-white p-6 rounded-lg shadow-md">
-          <Chart
-            options={userChartConfig.options}
-            series={userChartConfig.series}
-            type="pie"
-            height={400}
-          />
+          {loading ? (
+            <div className="h-[400px] flex items-center justify-center">
+              <div className="text-gray-500">Loading data...</div>
+            </div>
+          ) : (
+            <Chart
+              options={userChartConfig.options}
+              series={userChartConfig.series}
+              type="pie"
+              height={400}
+            />
+          )}
         </div>
 
         {/* Occupation Section */}
@@ -360,6 +422,107 @@ export default function AdminDashboard() {
               <HeatmapLayer />
             </MapContainer>
           </div>
+        </div>
+
+        {/* Policy Applications Section */}
+        <div className="col-span-12 bg-white p-6 rounded-lg shadow-md mt-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-[#403cd5]">
+              Policy Applications
+            </h2>
+            <div className="flex gap-4">
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="p-2 border rounded bg-white text-gray-700"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <button
+                onClick={() => setSortConfig({
+                  key: 'createdAt',
+                  direction: sortConfig.direction === 'asc' ? 'desc' : 'asc'
+                })}
+                className="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 text-gray-700"
+              >
+                Sort by Date {sortConfig.direction === 'asc' ? '↑' : '↓'}
+              </button>
+            </div>
+          </div>
+
+          {policyError ? (
+            <div className="text-center py-4 text-red-600">
+              {policyError}
+            </div>
+          ) : policyApplications.length === 0 ? (
+            <div className="text-center py-4 text-gray-500">
+              No policy applications found
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Title
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Applicant
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Submitted On
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortPolicies(policyApplications)
+                    .filter(policy => filterStatus === 'all' || policy.status === filterStatus)
+                    .map((policy) => (
+                      <tr key={policy._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {policy.title || 'Untitled'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {policy.userId?.name || 'Unknown User'}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {policy.userId?.email || 'No email provided'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(policy.status)}`}>
+                            {(policy.status?.charAt(0).toUpperCase() + policy.status?.slice(1)) || 'Unknown'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {policy.createdAt ? format(new Date(policy.createdAt), 'PP') : 'Unknown date'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => {/* Handle view details */}}
+                            className="text-indigo-600 hover:text-indigo-900"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
