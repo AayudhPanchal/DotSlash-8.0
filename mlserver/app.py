@@ -1,14 +1,20 @@
 from flask import Flask, request, jsonify
 import pandas as pd
 import ollama
+import numpy as np
 
 app = Flask(__name__)
 
 # Load the dataset
 try:
     df = pd.read_csv('data.csv')  # Ensure data.csv exists
+    # Ensure required columns exist
+    required_columns = ['Title', 'Description', 'Required Documents', 'Website Link']
+    for col in required_columns:
+        if col not in df.columns:
+            df[col] = np.nan
 except FileNotFoundError:
-    df = pd.DataFrame(columns=['Title', 'Description'])  # Empty DataFrame as fallback
+    df = pd.DataFrame(columns=required_columns)  # Empty DataFrame as fallback
 
 def create_prompt(user_data, user_query, policies_df):
     """
@@ -50,7 +56,7 @@ def query_llama(prompt):
 
 def get_full_policy_data(policy_titles):
     """
-    Given a list of policy titles, return the Title, Description, Benefits, Required Documents, and Website from the DataFrame.
+    Given a list of policy titles, return the Title, Description, Required Documents, and Website from the DataFrame.
     The rows will be joined by '^' as the delimiter.
     """
     full_data = []
@@ -60,8 +66,11 @@ def get_full_policy_data(policy_titles):
         # Search for the row that matches the policy title
         policy_row = df[df['Title'] == title]
         if not policy_row.empty:
-            # Join the row data with '^' as delimiter
-            full_row = '^'.join(policy_row.iloc[0].astype(str).values)
+            # Ensure the order and format of the fields
+            fields = ['Title', 'Description', 'Documents Required', 'Website']
+            # Replace NaN values with an empty string
+            policy_row = policy_row[fields].replace(np.nan, '', regex=True)
+            full_row = '^'.join(policy_row.iloc[0].astype(str).apply(lambda x: x.replace('\n', ' ')).values)
             full_data.append(full_row)
     return full_data
 
