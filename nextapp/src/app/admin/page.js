@@ -20,7 +20,7 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     const response = await fetch(
-      `/api/stats?ageGroup=${selectedAgeGroup}&gender=${selectedGender}&occupation=${selectedOccupation}&education=${selectedEducation}`
+      `/api/admin/stats?ageGroup=${selectedAgeGroup}&gender=${selectedGender}&occupation=${selectedOccupation}&education=${selectedEducation}`
     );
     const data = await response.json();
     setStatsData(data);

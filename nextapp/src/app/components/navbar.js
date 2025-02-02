@@ -152,12 +152,12 @@ export default function Navbar() {
       {/* Logo */}
       <div className="flex items-center space-x-3">
         <img
-          src="/images/logo.png" // Replace with your logo image
+          src="/images/logo.jpg" // Replace with your logo image
           alt="Logo"
-          className="w-10 h-10 md:w-16 md:h-26 mx-auto md:mx-0 mb-4 shadow-md"
+          className="w-10 h-10 md:w-16 md:h-26 mx-auto md:mx-0 mb-4 shadow-md rounded-md"
         />
         <span className="text-lg font-bold tracking-wide text-white">
-          Holy Trinity
+          Sathi
         </span>
       </div>
 
@@ -174,10 +174,9 @@ export default function Navbar() {
         {[
           { href: "/", label: "HOME" },
           { href: "/dashboard/recommend-policy", label: "GET POLICIES" },
-          { href: "/dashboard/apply-policy", label: "APPLY FOR POLICIES" },
-          { href: "/dashboard/voting-policy", label: "VOTE FOR POLICIES" },
-          { href: "/contact", label: "CONTACT" },
-          { href: "/aboutus", label: "ABOUT US" },
+          { href: "/dashboard/apply-policy", label: "APPLY POLICIES" },
+          { href: "/dashboard/voting-policy", label: "VOTE POLICIES" },
+          { href: "#aboutus", label: "ABOUT US" },
           { href: "/dashboard/profile", label: "PROFILE" },
         ].map(({ href, label }) => (
           <li key={href}>
@@ -252,7 +251,7 @@ export default function Navbar() {
         {isLoggedIn ? (
           <button
             onClick={handleLogout}
-            className="px-6 py-2 text-white text-opacity-90 bg-[#403cd5] font-semibold rounded-full shadow-md hover:text-opacity-100 hover:bg-[#4e49e5] transition-all duration-300"
+            className="px-6 py-2 text-white border border-[#8974e8] rounded-full hover:bg-[#8974e8] hover:text-black transition-all duration-300"
           >
             Logout
           </button>
@@ -290,7 +289,7 @@ export default function Navbar() {
             { href: "/reports", label: "REPORT" },
             { href: "/community", label: "COMMUNITY" },
             { href: "/features", label: "FEATURES" },
-            { href: "/aboutus", label: "ABOUT US" },
+            { href: "#aboutus", label: "ABOUT US" },
           ].map(({ href, label }) => (
             <Link
               key={href}
