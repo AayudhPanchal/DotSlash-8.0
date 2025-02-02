@@ -93,21 +93,13 @@ const Home = () => {
             url="https://prod.spline.design/eAiiKfUMzQGpOmPc/scene.splinecode"
           ></spline-viewer>
         </div>
-        <div className="hidden md:flex absolute top-64 left-24 flex-col">
+        <div className="hidden md:flex absolute top-56 left-24 flex-col">
           <div className="w-[35vw] title text-8xl font-bold">
             Digital India, Empowered Citizens
           </div>
           <div className="description pt-4 text-3xl opacity-80">
             Your one-stop portal for seamless government services <br /> and
             digital documentation
-          </div>
-          <div className="action_button pt-6">
-            <button className="group cursor-pointer slide-anime px-5 py-3 rounded-full w-[180px] bg-white text-[#403cd5] flex justify-between items-center font-semibold">
-              Schedule Call{" "}
-              <div className="group-hover:translate-x-2 transition-all">
-                <ArrowRight />
-              </div>
-            </button>
           </div>
         </div>
       </section>
@@ -124,14 +116,6 @@ const Home = () => {
           <div className="description pt-2 px-12 text-sm opacity-80">
             Your one-stop portal for seamless government services and digital
             documentation
-          </div>
-          <div className="action_button pt-60">
-            <button className="group cursor-pointer slide-anime px-5 py-3 rounded-full w-[180px] bg-white text-[#403cd5] flex justify-between items-center font-semibold">
-              Schedule Call{" "}
-              <div className="group-hover:translate-x-2 transition-all">
-                <ArrowRight />
-              </div>
-            </button>
           </div>
         </div>
       </section>

@@ -1,6 +1,6 @@
-'use client';
-import React, { useState } from 'react';
-import axios from 'axios';
+"use client";
+import React, { useState } from "react";
+import axios from "axios";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +39,8 @@ export default function Chatbot() {
         setMessages((prev) => {
           const updatedMessages = [...prev];
           if (index < words.length) {
-            updatedMessages[updatedMessages.length - 1].content += (index > 0 ? " " : "") + words[index];
+            updatedMessages[updatedMessages.length - 1].content +=
+              (index > 0 ? " " : "") + words[index];
             index++;
           } else {
             clearInterval(typingInterval);
@@ -47,7 +48,7 @@ export default function Chatbot() {
           }
           return updatedMessages;
         });
-      }, 200); 
+      }, 200);
     } catch (error) {
       console.error("Error communicating with the server:", error);
       setMessages((prev) => [
@@ -74,7 +75,7 @@ export default function Chatbot() {
 
       {isOpen && (
         <div className="fixed inset-0 bg-[#403cd5]/80 flex items-center justify-center z-50">
-          <div className="bg-[#F5F5F5] text-[#081707] w-full max-w-md rounded-lg shadow-lg p-4 border border-[#6DBE47]">
+          <div className="bg-[#F5F5F5] text-[#081707] w-full max-w-md rounded-lg shadow-lg p-4 border border-[#6DBE47] text-white">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Chat with Us</h2>
               <button
@@ -85,7 +86,7 @@ export default function Chatbot() {
               </button>
             </div>
 
-            <div className="h-80 overflow-y-auto border border-[#403cd5] rounded-lg p-4 space-y-4 bg-[#403cd5]/80">
+            <div className="h-80 overflow-y-auto border border-[#403cd5] text-white rounded-lg p-4 space-y-4 bg-[#403cd5]/80">
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -97,7 +98,7 @@ export default function Chatbot() {
                     className={`p-3 rounded-lg max-w-xs ${
                       message.role === "user"
                         ? "bg-[#403cd5]/50 text-white"
-                        : "bg-[#403cd5] text-[#081707]"
+                        : "bg-[#403cd5] text-white"
                     }`}
                   >
                     {message.content}
