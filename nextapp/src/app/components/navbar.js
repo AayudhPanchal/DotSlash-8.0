@@ -173,10 +173,12 @@ export default function Navbar() {
       <ul className="hidden sm:flex space-x-8 text-sm sm:text-base">
         {[
           { href: "/", label: "HOME" },
-          { href: "/reports", label: "REPORT" },
-          { href: "/community", label: "COMMUNITY" },
-          { href: "/features", label: "FEATURES" },
+          { href: "/dashboard/recommend-policy", label: "GET POLICIES" },
+          { href: "/dashboard/apply-policy", label: "APPLY FOR POLICIES" },
+          { href: "/dashboard/voting-policy", label: "VOTE FOR POLICIES" },
+          { href: "/contact", label: "CONTACT" },
           { href: "/aboutus", label: "ABOUT US" },
+          { href: "/dashboard/profile", label: "PROFILE" },
         ].map(({ href, label }) => (
           <li key={href}>
             <Link 

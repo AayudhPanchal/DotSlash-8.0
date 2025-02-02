@@ -156,7 +156,7 @@ function SignupPage() {
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+        newErrors.confirmPassword = "Passwords do not match";
     }
     
     if (!formData.captchaInput) {
@@ -229,7 +229,7 @@ function SignupPage() {
         // Store the token
         sessionStorage.setItem('user-auth-token', data.token);
         // Redirect to dashboard
-        router.push("/dashboard");
+        router.push("/dashboard/profile");
       } else {
         throw new Error(data.message || 'Signup failed');
       }

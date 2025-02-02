@@ -16,12 +16,12 @@ export async function POST(req) {
     await dbConnect();
 
     // Validate input fields
-    if (!name || !email || !mobileno || !password || !captchaToken || !captchaInput) {
+    if (!name || !email || !mobileno || !password || !captchaToken || !captchaInput || !location) {
       return new Response(
         JSON.stringify({ 
           message: 'All fields are required', 
           success: false,
-          missingFields: { name, email, mobileno, password, captchaToken, captchaInput }
+          missingFields: { name, email, mobileno, password, captchaToken, captchaInput, location }
         }),
         { status: 400 }
       );
@@ -81,6 +81,7 @@ export async function POST(req) {
       isVerified: false, // Add an `isVerified` field in your User model
       otp,
       otpExpires: Date.now() + 10 * 60 * 1000, // OTP valid for 10 minutes
+      location, // Include the location field
     });
 
     // Step 5: Send the OTP email
