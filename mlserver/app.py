@@ -50,7 +50,7 @@ def query_llama(prompt):
 
 def get_full_policy_data(policy_titles):
     """
-    Given a list of policy titles, return the full row of data from the DataFrame.
+    Given a list of policy titles, return the Title, Description, Benefits, Required Documents, and Website from the DataFrame.
     The rows will be joined by '^' as the delimiter.
     """
     full_data = []
