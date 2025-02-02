@@ -60,13 +60,13 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6">
       {/* Filters */}
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
         <select 
           value={selectedAgeGroup}
           onChange={(e) => setSelectedAgeGroup(e.target.value)}
-          className="p-2 border rounded"
+          className="p-2 border rounded w-full md:w-auto"
         >
           <option value="all">All Ages</option>
           <option value="18-25">18-25</option>
@@ -78,7 +78,7 @@ export default function Dashboard() {
         <select 
           value={selectedGender}
           onChange={(e) => setSelectedGender(e.target.value)}
-          className="p-2 border rounded"
+          className="p-2 border rounded w-full md:w-auto"
         >
           <option value="all">All Genders</option>
           <option value="male">Male</option>
@@ -106,7 +106,7 @@ export default function Dashboard() {
       </div>
 
       {/* Heatmap */}
-      <div className="h-[500px] bg-white rounded-lg shadow">
+      <div className="h-[300px] md:h-[500px] bg-white rounded-lg shadow">
         <GoogleMap
           center={{ lat: 20.5937, lng: 78.9629 }}
           zoom={5}
