@@ -103,66 +103,103 @@ export default function ProfilePage() {
     children: []
   });
 
+  const fetchUserProfile = async () => {
+    try {
+      const token = sessionStorage.getItem("user-auth-token");
+      if (!token) {
+        router.push('/auth/login');
+        return;
+      }
+
+      const response = await fetch(`/api/user/info`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "user-data": token,
+        },
+      });
+
+      if (response.status === 401) {
+        sessionStorage.removeItem("user-auth-token");
+        router.push('/auth/login');
+        return;
+      }
+
+      const data = await response.json();
+      if (data.success && data.data) {
+        const userData = data.data;
+        setUser(userData);
+        setFormData(prev => ({
+          ...prev,
+          ...userData,
+          children: userData.children || [],
+          currentAddress: userData.currentAddress || {
+            street: "",
+            city: "",
+            state: "",
+            pincode: "",
+            sameAsPermanent: false
+          },
+          permanentAddress: userData.permanentAddress || {
+            street: "",
+            city: "",
+            state: "",
+            pincode: ""
+          }
+        }));
+
+        // Calculate initial profile completion
+        const completion = calculateProfileCompletion(userData);
+        setProfileComplete(completion === 100);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const userData = sessionStorage.getItem('user-data');
-    const firstVisit = sessionStorage.getItem('first-profile-visit');
-    
-    if (!userData) {
-      router.push('/auth/login');
-      return;
-    }
-
-    const parsedUser = JSON.parse(userData);
-    setUser(parsedUser);
-    setFormData(prev => ({
-      ...prev,
-      ...parsedUser,
-      children: parsedUser.children || []
-    }));
-
-    if (!firstVisit) {
-      setIsFirstVisit(true);
-      sessionStorage.setItem('first-profile-visit', 'false');
-    } else {
-      setIsFirstVisit(false);
-    }
-
-    // Check profile completion
-    const completion = calculateProfileCompletion(parsedUser);
-    setProfileComplete(completion === 100);
-    setLoading(false);
+    fetchUserProfile();
   }, []);
 
   const calculateProfileCompletion = (userData) => {
+    const userAge = userData.age || 0;
+    
+    // Define required fields based on age
     const requiredFields = [
+      { name: 'name', weight: 10 },
+      { name: 'email', weight: 10 },
+      { name: 'mobileno', weight: 10 },
       { name: 'age', weight: 10 },
       { name: 'gender', weight: 10 },
-      { name: 'maritalStatus', weight: 10 },
       { name: 'permanentAddress.street', weight: 5 },
       { name: 'permanentAddress.city', weight: 5 },
       { name: 'permanentAddress.state', weight: 5 },
       { name: 'permanentAddress.pincode', weight: 5 },
       { name: 'occupation', weight: 15 },
-      { name: 'education', weight: 15 },
-      { name: 'isGovernmentEmployee', weight: 10 },
-      { name: 'department', weight: 10 }
+      { name: 'education', weight: 15 }
     ];
-    
+
+    // Add marriage-related fields only if age >= 21
+    if (userAge >= 21) {
+      requiredFields.push(
+        { name: 'maritalStatus', weight: 10 }
+      );
+      
+      // Add spouse and children fields only if married
+      if (userData.maritalStatus === 'married') {
+        requiredFields.push(
+          { name: 'spouseName', weight: 5 },
+          { name: 'children', weight: 5 }
+        );
+      }
+    }
+
     let completionScore = 0;
     let totalWeight = 0;
     
     requiredFields.forEach(field => {
-      // Skip department field if not a government employee
-      if (field.name === 'department' && !userData.isGovernmentEmployee) {
-        return;
-      }
-      
-      // Skip spouse and children related fields if not applicable
-      if ((field.name === 'spouseName' || field.name.startsWith('children')) 
-          && (userData.maritalStatus !== 'married' || userData.age < 21)) {
-        return;
-      }
-
       totalWeight += field.weight;
       
       let value;
@@ -174,7 +211,14 @@ export default function ProfilePage() {
       }
       
       if (value) {
-        completionScore += field.weight;
+        if (Array.isArray(value)) {
+          // For arrays (like children), check if it's properly filled
+          if (value.length > 0 && value.every(item => item.age && item.gender)) {
+            completionScore += field.weight;
+          }
+        } else {
+          completionScore += field.weight;
+        }
       }
     });
 
@@ -660,6 +704,67 @@ export default function ProfilePage() {
     </div>
   );
 
+  const renderFamilySection = () => {
+    if (!formData.age || formData.age < 21) return null;
+
+    return (
+      <FormSection title="Family Information" disabled={!editing}>
+        <div className="space-y-4">
+          <InputField
+            label="Spouse Name"
+            name="spouseName"
+            value={formData.spouseName}
+            onChange={handleChange}
+            disabled={!editing}
+          />
+          
+          {formData.age >= 21 && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <label className="block text-gray-700">Children</label>
+                <button
+                  type="button"
+                  onClick={handleAddChild}
+                  className="text-[#403cd5] hover:text-[#302cb0]"
+                  disabled={!editing}
+                >
+                  Add Child
+                </button>
+              </div>
+              {formData.children.map((child, index) => (
+                <div key={index} className="grid grid-cols-2 gap-4 p-4 border rounded">
+                  <div>
+                    <label>Gender</label>
+                    <select
+                      value={child.gender}
+                      onChange={(e) => handleChildChange(index, 'gender', e.target.value)}
+                      disabled={!editing}
+                      className="form-select mt-1 block w-full"
+                    >
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Age</label>
+                    <input
+                      type="number"
+                      value={child.age}
+                      onChange={(e) => handleChildChange(index, 'age', e.target.value)}
+                      disabled={!editing}
+                      className="form-input mt-1 block w-full"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </FormSection>
+    );
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-4 md:p-8 relative pb-24">
       <div className="mb-8 flex items-center justify-between">
@@ -700,6 +805,7 @@ export default function ProfilePage() {
         {renderNonEditableFields()}
         {renderEditableBasicInfo()}
         {renderAddressSection()}
+        {formData.age >= 21 && renderFamilySection()}
         
         {/* Employment Details */}
         <FormSection title="Employment Details" disabled={!editing}>

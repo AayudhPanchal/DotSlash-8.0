@@ -13,6 +13,7 @@ export default function PolicyPage() {
   const [loading, setLoading] = useState(true);
   const [userInput, setUserInput] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const fetchUserProfile = async () => {
     try {
@@ -71,10 +72,10 @@ export default function PolicyPage() {
     e.preventDefault();
     if (!userInput.trim()) return;
 
+    setIsSearching(true);
     setChatHistory(prev => [...prev, { type: 'user', content: userInput }]);
     
     try {
-      setLoading(true);
       const token = sessionStorage.getItem("user-auth-token");
       const response = await axios.post("/api/recommendpolicies", {
         message: userInput,
@@ -82,14 +83,22 @@ export default function PolicyPage() {
       });
       
       if (response.data.success) {
+        setChatHistory(prev => [...prev, { 
+          type: 'assistant', 
+          content: "Here are some policies that might interest you:" 
+        }]);
+
         const formattedPolicies = response.data.policies.map(policy => {
-          const [title, description, benefit, requiredDocuments, websiteLink] = policy.split('^');
-          return { title, description, benefit, requiredDocuments, websiteLink };
+          const [title, benefit, requiredDocuments,  websiteLink] = policy.split('^').map(item => item.trim());
+          return {
+            title: title || "Untitled Policy",
+            benefit: benefit || "No benefits listed",
+            requiredDocuments: requiredDocuments || "No documents specified",
+            websiteLink: websiteLink || "#"
+          };
         });
 
-        console.log("Formatted Policies:", formattedPolicies); // Log the formatted data
-
-        setPolicies(prev => [...formattedPolicies, ...prev]);
+        setPolicies(formattedPolicies);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -98,7 +107,7 @@ export default function PolicyPage() {
         content: "Sorry, I encountered an error processing your request." 
       }]);
     } finally {
-      setLoading(false);
+      setIsSearching(false);
       setUserInput("");
     }
   };
@@ -199,6 +208,20 @@ export default function PolicyPage() {
                 </motion.div>
               ))
             )}
+            {isSearching && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center space-x-2 p-4 bg-gray-50 rounded-lg"
+              >
+                <div className="relative w-12 h-12">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-8 h-8 border-4 border-[#403cd5] border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                </div>
+                <span className="text-gray-600">Searching for policies...</span>
+              </motion.div>
+            )}
           </div>
 
           {/* Chat Input */}
@@ -208,18 +231,15 @@ export default function PolicyPage() {
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               placeholder="Ask about policies..."
-              className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#403cd5]"
+              disabled={isSearching}
+              className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#403cd5] disabled:bg-gray-100"
             />
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSearching}
               className="p-3 bg-[#403cd5] text-white rounded-lg hover:bg-[#302cb0] transition-colors disabled:bg-gray-400"
             >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"/>
-              ) : (
-                <FiSend size={20} />
-              )}
+              <FiSend size={20} />
             </button>
           </form>
         </div>
@@ -249,7 +269,9 @@ export default function PolicyPage() {
                   <p className="text-gray-600 mt-2">{policy.description}</p>
                   <div className="text-sm text-gray-500 mt-1">Benefit: {policy.benefit}</div>
                   <div className="text-sm text-gray-500 mt-1">Required Documents: {policy.requiredDocuments}</div>
-                  <div className="text-sm text-gray-500 mt-1">Website Link: <a href={policy.websiteLink} target="_blank" rel="noopener noreferrer">{policy.websiteLink}</a></div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    Website Link: <a href={policy.websiteLink} target="_blank" rel="noopener noreferrer" className="text-[#403cd5] underline">{policy.websiteLink}</a>
+                  </div>
 
                   {expandedPolicy === idx && (
                     <div className="mt-4 p-4 bg-white rounded-lg border border-[#403cd5]/10">
