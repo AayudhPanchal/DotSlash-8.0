@@ -1,7 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { FiUser, FiFileText, FiCheckSquare, FiEdit3, FiMoon, FiSun, FiHome } from "react-icons/fi";
+import { FiUser, FiFileText, FiCheckSquare, FiEdit3, FiMoon, FiSun, FiHome, FiMenu, FiX } from "react-icons/fi";
 import { useState, useEffect } from "react";
 
 const menuItems = [
@@ -15,57 +15,81 @@ const menuItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [darkMode, setDarkMode] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
   return (
-    <aside className="fixed top-0 left-0 w-64 h-screen bg-[#403cd5] flex flex-col p-4 z-50">
-      <div className="flex items-center gap-3 px-4 py-6 border-b border-white/10">
-        <span className="text-xl font-bold text-white">Dashboard</span>
+    <>
+      {/* Mobile Hamburger */}
+      <div className="md:hidden fixed top-4 left-4 z-50">
+        <button 
+          className="p-2 bg-[#403cd5] rounded-lg text-white"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <FiMenu size={24} />
+        </button>
       </div>
 
-      <nav className="flex-1 mt-6">
-        {/* Home button - separate from other menu items for emphasis */}
-        <Link href="/" className="block mb-4">
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300
-            ${pathname === "/" 
-              ? "bg-white text-[#403cd5] font-semibold shadow-lg" 
-              : "text-white hover:bg-white/10"
-            }`}
+      {/* Backdrop */}
+      {isOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`fixed top-0 left-0 h-screen bg-[#403cd5] flex flex-col transition-all duration-300 z-50
+        md:translate-x-0
+        ${isOpen ? 'translate-x-0 w-64' : '-translate-x-full md:w-16'}`}>
+        <div className="flex items-center justify-between px-4 py-6 border-b border-white/10">
+          {(isOpen || !isOpen) && <span className="text-xl font-bold text-white md:hidden">Dashboard</span>}
+          {isOpen && <span className="text-xl font-bold text-white hidden md:block">Dashboard</span>}
+          <button 
+            className="text-white hover:bg-white/10 p-2 rounded-lg"
+            onClick={() => setIsOpen(!isOpen)}
           >
-            <FiHome size={20} />
-            Home
-          </div>
-        </Link>
+            {isOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+          </button>
+        </div>
 
-        {/* Divider */}
-        <div className="border-b border-white/10 mb-4"></div>
-
-        {/* Other menu items */}
-        {menuItems.slice(1).map(({ name, path, icon: Icon }) => (
-          <Link key={path} href={path} className="block mb-2">
-            <div className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300
-              ${pathname === path 
-                ? "bg-white text-[#403cd5] font-semibold shadow-lg" 
-                : "text-white hover:bg-white/10"
-              }`}
-            >
-              <Icon size={20} />
-              {name}
+        <nav className="flex-1 mt-6">
+          {menuItems.map(({ name, path, icon: Icon }) => (
+            <div key={path} className="group relative">
+              <Link href={path}>
+                <div className={`flex items-center gap-3 px-4 py-3 mb-2 rounded-lg transition-all duration-300
+                  ${pathname === path 
+                    ? "bg-white text-[#403cd5] font-semibold shadow-lg" 
+                    : "text-white hover:bg-white/10"
+                  }
+                  ${!isOpen ? 'justify-center' : ''}`}
+                >
+                  <Icon size={20} />
+                  {isOpen && <span>{name}</span>}
+                </div>
+              </Link>
+              {!isOpen && (
+                <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-gray-800 text-white px-2 py-1 rounded-lg 
+                  opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm">
+                  {name}
+                </div>
+              )}
             </div>
-          </Link>
-        ))}
-      </nav>
+          ))}
+        </nav>
 
-      <button
-        onClick={() => setDarkMode(!darkMode)}
-        className="mt-auto flex items-center gap-3 px-4 py-2 text-white/90 hover:bg-white/10 rounded-lg transition"
-      >
-        {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
-        {darkMode ? "Light Mode" : "Dark Mode"}
-      </button>
-    </aside>
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className={`mt-auto flex items-center gap-3 px-4 py-2 text-white/90 hover:bg-white/10 rounded-lg transition mb-4
+            ${!isOpen ? 'justify-center' : ''}`}
+        >
+          {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
+          {isOpen && (darkMode ? "Light Mode" : "Dark Mode")}
+        </button>
+      </aside>
+    </>
   );
 }

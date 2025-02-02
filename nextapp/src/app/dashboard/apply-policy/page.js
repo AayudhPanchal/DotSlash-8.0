@@ -70,7 +70,7 @@ export default function ApplyPolicyPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-6 border border-[#403cd5]/10">
+    <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-4 md:p-6 border border-[#403cd5]/10">
       <h2 className="text-3xl font-bold text-[#403cd5] mb-4">Apply for a Policy</h2>
       <p className="text-gray-300 mb-6">
         Submit a proposal for a new policy or modifications to an existing one.
