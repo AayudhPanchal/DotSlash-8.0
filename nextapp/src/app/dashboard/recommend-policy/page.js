@@ -76,18 +76,26 @@ export default function PolicyPage() {
     
     try {
       setLoading(true);
-      const response = await axios.post("/api/recommendpolicies/chat", {
+      const token = sessionStorage.getItem("user-auth-token");
+      const response = await axios.post("/api/recommendpolicies", {
         message: userInput,
-        userId: sessionStorage.getItem("user-auth-token")
+        userId: token
       });
       
       if (response.data.success) {
+        const formattedPolicies = response.data.policies.map(policy => {
+          const [title, description, benefit, requiredDocuments, websiteLink] = policy.split('^');
+          return { title, description, benefit, requiredDocuments, websiteLink };
+        });
+
+        console.log("Formatted Policies:", formattedPolicies); // Log the formatted data
+
         setRecentResult({
           query: userInput,
-          policies: response.data.policies,
+          policies: formattedPolicies,
           reply: response.data.reply
         });
-        setPolicies(prev => [...response.data.policies, ...prev]);
+        setPolicies(prev => [...formattedPolicies, ...prev]);
         setChatHistory(prev => [...prev, { 
           type: 'assistant', 
           content: response.data.reply 
@@ -236,9 +244,9 @@ export default function PolicyPage() {
             <h3 className="text-lg font-semibold text-[#403cd5] mb-4">Recent Recommendations</h3>
             <p className="text-gray-600 mb-4">{recentResult.reply}</p>
             <div className="grid gap-4">
-              {recentResult.policies.map((policy) => (
+              {recentResult.policies.map((policy, idx) => (
                 <motion.div
-                  key={policy._id}
+                  key={idx}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="p-6 rounded-xl bg-gradient-to-r from-[#403cd5]/5 to-transparent border border-[#403cd5]/10"
@@ -246,19 +254,20 @@ export default function PolicyPage() {
                   <div className="flex justify-between items-center">
                     <h3 className="text-xl font-bold text-[#403cd5]">{policy.title}</h3>
                     <button
-                      onClick={() => togglePolicyDetails(policy._id)}
+                      onClick={() => togglePolicyDetails(idx)}
                       className="px-4 py-2 rounded-lg text-[#403cd5] hover:bg-[#403cd5]/10 transition-all duration-300"
                     >
-                      {expandedPolicy === policy._id ? "Hide Details" : "View Details"}
+                      {expandedPolicy === idx ? "Hide Details" : "View Details"}
                     </button>
                   </div>
                   
                   <p className="text-gray-600 mt-2">{policy.description}</p>
-                  <div className="text-sm text-gray-500 mt-1">Category: {policy.category}</div>
+                  <div className="text-sm text-gray-500 mt-1">Benefit: {policy.benefit}</div>
+                  <div className="text-sm text-gray-500 mt-1">Required Documents: {policy.requiredDocuments}</div>
+                  <div className="text-sm text-gray-500 mt-1">Website Link: <a href={policy.websiteLink} target="_blank" rel="noopener noreferrer">{policy.websiteLink}</a></div>
 
-                  {expandedPolicy === policy._id && (
+                  {expandedPolicy === idx && (
                     <div className="mt-4 p-4 bg-white rounded-lg border border-[#403cd5]/10">
-                      <p className="text-gray-600">{policy.details}</p>
                       {userProfile && (
                         <div className="mt-2 text-sm text-[#403cd5]">
                           This policy matches your profile based on your {policy.category} needs.
@@ -277,10 +286,10 @@ export default function PolicyPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-600">Previous Recommendations</h3>
             <div className="grid gap-4">
-              {policies.filter(p => !recentResult?.policies.find(rp => rp._id === p._id))
-                .map((policy) => (
+              {policies.filter(p => !recentResult?.policies.find(rp => rp.title === p.title))
+                .map((policy, idx) => (
                   <motion.div
-                    key={policy._id}
+                    key={idx}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="p-6 rounded-xl bg-gradient-to-r from-[#403cd5]/5 to-transparent border border-[#403cd5]/10"
@@ -288,19 +297,20 @@ export default function PolicyPage() {
                     <div className="flex justify-between items-center">
                       <h3 className="text-xl font-bold text-[#403cd5]">{policy.title}</h3>
                       <button
-                        onClick={() => togglePolicyDetails(policy._id)}
+                        onClick={() => togglePolicyDetails(idx)}
                         className="px-4 py-2 rounded-lg text-[#403cd5] hover:bg-[#403cd5]/10 transition-all duration-300"
                       >
-                        {expandedPolicy === policy._id ? "Hide Details" : "View Details"}
+                        {expandedPolicy === idx ? "Hide Details" : "View Details"}
                       </button>
                     </div>
                     
                     <p className="text-gray-600 mt-2">{policy.description}</p>
-                    <div className="text-sm text-gray-500 mt-1">Category: {policy.category}</div>
+                    <div className="text-sm text-gray-500 mt-1">Benefit: {policy.benefit}</div>
+                    <div className="text-sm text-gray-500 mt-1">Required Documents: {policy.requiredDocuments}</div>
+                    <div className="text-sm text-gray-500 mt-1">Website Link: <a href={policy.websiteLink} target="_blank" rel="noopener noreferrer">{policy.websiteLink}</a></div>
 
-                    {expandedPolicy === policy._id && (
+                    {expandedPolicy === idx && (
                       <div className="mt-4 p-4 bg-white rounded-lg border border-[#403cd5]/10">
-                        <p className="text-gray-600">{policy.details}</p>
                         {userProfile && (
                           <div className="mt-2 text-sm text-[#403cd5]">
                             This policy matches your profile based on your {policy.category} needs.

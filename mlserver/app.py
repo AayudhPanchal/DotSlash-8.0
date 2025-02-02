@@ -10,7 +10,6 @@ try:
 except FileNotFoundError:
     df = pd.DataFrame(columns=['Title', 'Description'])  # Empty DataFrame as fallback
 
-
 def create_prompt(user_data, user_query, policies_df):
     """
     Generates a structured prompt for Llama 3.2 to find relevant government schemes.
@@ -68,21 +67,25 @@ def get_full_policy_data(policy_titles):
 
 @app.route('/recommend_policies', methods=['POST'])
 def recommend_policies():
-    data = request.json
-    user_data = data.get("user_data", {})
-    user_query = data.get("user_query", "")
+    try:
+        data = request.json
+        user_data = data.get("user_data", {})
+        user_query = data.get("user_query", "")
 
-    if not user_query:
-        return jsonify({"error": "User query is required."}), 400
+        if not user_query:
+            return jsonify({"error": "User query is required."}), 400
 
-    prompt = create_prompt(user_data, user_query, df)
-    response = query_llama(prompt)
-    policy_titles = response.split("\n") if response else []
+        prompt = create_prompt(user_data, user_query, df)
+        response = query_llama(prompt)
+        policy_titles = response.split("\n") if response else []
 
-    # Get full data for the relevant policies
-    full_policy_data = get_full_policy_data(policy_titles)
+        # Get full data for the relevant policies
+        full_policy_data = get_full_policy_data(policy_titles)
 
-    return jsonify({"relevant_policies": full_policy_data})
+        return jsonify({"relevant_policies": full_policy_data})
+    except Exception as e:
+        print(f"Error in recommend_policies: {e}")
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

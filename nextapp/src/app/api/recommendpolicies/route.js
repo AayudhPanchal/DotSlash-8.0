@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/utils/db";
 import RecommendedPolicy from "@/models/recommendpolicies";
-import { policies } from "@/app/data/policies";
+import User from "@/models/user"; // Import User model
+import axios from "axios"; // Import axios for making requests to Flask server
+import jwt from "jsonwebtoken"; // Import jwt for decoding the token
 
 export async function GET(request) {
   try {
@@ -37,73 +39,74 @@ export async function GET(request) {
     if (occupation) {
       query.suitableFor = occupation;
     }
+    if (maritalStatus) {
+      query.maritalStatus = maritalStatus;
+    }
 
-    // Fetch and sort policies
-    const allPolicies = await RecommendedPolicy.find(query)
-      .sort({ priority: -1 })
-      .lean();
-    
-    return NextResponse.json({ 
-      success: true,
-      policies: allPolicies,
-      filters: { age, occupation, maritalStatus }
-    });
-
+    const recommendedPolicies = await RecommendedPolicy.find(query);
+    return NextResponse.json({ success: true, policies: recommendedPolicies });
   } catch (error) {
-    console.error("Error in recommend policies:", error);
-    return NextResponse.json({ 
-      success: false,
-      error: "Failed to fetch policies" 
-    }, { status: 500 });
+    console.error("Error fetching recommended policies:", error);
+    return NextResponse.json({ success: false, message: "Failed to fetch recommended policies" });
   }
 }
 
 export async function POST(request) {
   try {
     await dbConnect();
-    const body = await request.json();
-    
-    // If it's a chat request
-    if (body.message) {
-      // Process the message to identify user needs
-      const userMessage = body.message.toLowerCase();
-      let query = {};
-      
-      // Simple keyword matching
-      if (userMessage.includes('health')) {
-        query.category = 'health';
-      } else if (userMessage.includes('life')) {
-        query.category = 'life';
-      } else if (userMessage.includes('vehicle')) {
-        query.category = 'vehicle';
-      }
+    const { message, userId } = await request.json();
 
-      // Fetch matching policies
-      const matchedPolicies = await RecommendedPolicy.find(query).lean();
+    // Decode the JWT token to extract the userId
+    const decodedToken = jwt.verify(userId, process.env.JWT_SECRET);
+    const userIdFromToken = decodedToken.userId;
 
-      // Generate reply based on matched policies
-      const reply = matchedPolicies.length > 0
-        ? `I found ${matchedPolicies.length} policies that might interest you based on your query.`
-        : "I couldn't find specific policies matching your query. Here are some recommended policies:";
+    // Fetch user profile from the database
+    const user = await User.findById(userIdFromToken);
+    if (!user) {
+      return NextResponse.json({ success: false, message: "User not found" });
+    }
 
+    // Collect user information
+    const userInfo = {
+      name: user.name,
+      age: user.age,
+      gender: user.gender,
+      maritalStatus: user.maritalStatus,
+      occupation: user.occupation,
+      education: user.education,
+      isGovernmentEmployee: user.isGovernmentEmployee,
+      children: user.children,
+      location: {
+        latitude: user.location?.latitude,
+        longitude: user.location?.longitude,
+      },
+    };
+
+    // Log the built object
+    console.log("Built user info object:", userInfo);
+
+    // Send data to Flask server
+    const flaskResponse = await axios.post("http://localhost:5000/recommend_policies", {
+      user_data: userInfo,
+      user_query: message
+    });
+
+    if (flaskResponse.data.relevant_policies) {
       return NextResponse.json({
         success: true,
-        policies: matchedPolicies,
-        reply
+        policies: flaskResponse.data.relevant_policies,
+        reply: flaskResponse.data.relevant_policies.join('\n') // Ensure reply is a string
       });
+    } else {
+      return NextResponse.json({ success: false, message: "Flask server error" });
     }
-    
-    // Existing policy creation logic
-    const newPolicy = await RecommendedPolicy.create(body);
-    
-    return NextResponse.json({ 
-      success: true,
-      policy: newPolicy
-    });
   } catch (error) {
-    return NextResponse.json({ 
-      success: false,
-      error: "Failed to process request"
-    }, { status: 500 });
+    console.error("Error processing request:", error);
+    if (error.response) {
+      console.error("Response data:", error.response.data);
+      console.error("Response status:", error.response.status);
+      console.error("Response headers:", error.response.headers);
+    }
+    return NextResponse.json({ success: false, message: "Failed to process request" });
   }
 }
