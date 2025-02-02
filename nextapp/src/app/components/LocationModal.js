@@ -52,7 +52,7 @@ const LocationModal = ({ isOpen, onClose, onAccept, message = "Location Access R
           <div className="flex items-center justify-end space-x-4 mt-6">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700  transition-colors"
             >
               Cancel
             </button>
